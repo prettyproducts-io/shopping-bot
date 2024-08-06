@@ -1,0 +1,100 @@
+# Generate Catalog
+
+<div id="status"></div>
+
+<div id="progress-bar">
+    <div id="progress-bar-fill" style="width: 0%;"></div>
+</div>
+
+<button id="start-generation">Start Generation</button>
+<button id="cancel-generation" disabled>Cancel Generation (Not Implemented)</button>
+<button id="download-catalog" disabled>Download Catalog</button>
+
+{{ form.csrf_token }}
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    let taskId = null;
+    let pollingInterval = null;
+
+    $('#start-generation').click(function() {
+        $.ajax({
+            url: '/generate_catalog',
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ form.csrf_token.current_token }}'
+            },
+            success: function(response) {
+                taskId = response.task_id;
+                $('#start-generation').prop('disabled', true);
+                $('#cancel-generation').prop('disabled', false);
+                startPolling();
+            },
+            error: function(xhr, status, error) {
+                $('#status').text('Error starting generation: ' + error);
+            }
+        });
+    });
+
+    function startPolling() {
+        pollingInterval = setInterval(function() {
+            if (taskId) {
+                checkStatus();
+            }
+        }, 1000); // Poll every second
+    }
+
+    function checkStatus() {
+        $.ajax({
+            url: '/catalog_status/' + taskId,
+            method: 'GET',
+            success: function(response) {
+                updateStatus(response);
+                if (response.state === 'SUCCESS' || response.state === 'FAILURE') {
+                    clearInterval(pollingInterval);
+                    $('#cancel-generation').prop('disabled', true);
+                    $('#download-catalog').prop('disabled', false);
+                }
+            },
+            error: function(xhr, status, error) {
+                $('#status').text('Error checking status: ' + error);
+            }
+        });
+    }
+
+    function updateStatus(response) {
+        $('#status').text(response.status);
+        if (response.progress !== undefined) {
+            let progressPercentage = response.progress.toFixed(2) + '%';
+            $('#progress-bar-fill').css('width', progressPercentage);
+            $('#progress-bar-fill').text(progressPercentage);
+        }
+    }
+
+    $('#download-catalog').click(function() {
+        window.location.href = '/download_catalog';
+    });
+});
+</script>
+
+<style>
+#progress-bar {
+    width: 100%;
+    background-color: #f0f0f0;
+    padding: 3px;
+    border-radius: 3px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2);
+}
+
+#progress-bar-fill {
+    display: block;
+    height: 22px;
+    background-color: #659cef;
+    border-radius: 3px;
+    transition: width 500ms ease-in-out;
+    text-align: center;
+    line-height: 22px;
+    color: white;
+}
+</style>

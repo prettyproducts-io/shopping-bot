@@ -1,0 +1,4 @@
+User-agent: *
+Allow: 
+Disallow: /
+Sitemap: https://epona.eqbay.co/sitemap.xml
