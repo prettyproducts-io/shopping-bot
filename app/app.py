@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify, render_template, send_from_directory,
 from flask_session import Session
 import segment.analytics as analytics
 from flask_wtf import FlaskForm, CSRFProtect
-from flask_wtf.csrf import generate_csrf, validate_csrf, CSRFProtect, csrf_exempt
+from flask_wtf.csrf import generate_csrf, validate_csrf, CSRFProtect
 from flask_basicauth import BasicAuth
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 from flask_limiter import Limiter
