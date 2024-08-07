@@ -84,7 +84,7 @@ body {
 }
 
 #chat-input {
-  max-width: 90%;
+  width: 290px;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 10px;
@@ -102,7 +102,6 @@ body {
   margin-bottom: -20px;
   margin-left: 10px;
   border-radius: 10px;
-  max-width: 10%;
 }
 
 .message-container {
