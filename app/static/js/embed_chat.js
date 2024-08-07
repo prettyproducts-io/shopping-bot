@@ -86,8 +86,8 @@
     iframe.style.position = 'fixed';
     iframe.style.bottom = '30px';
     iframe.style.right = '30px';
-    iframe.style.width = '350px';
-    iframe.style.height = '450px';
+    iframe.style.width = '400px';
+    iframe.style.height = '550px';
     iframe.style.border = 'none';
     iframe.style.zIndex = '10001';
     iframe.style.display = 'none';
