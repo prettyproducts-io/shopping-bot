@@ -47,7 +47,7 @@ try:
     print("Flask app created")
 
     print("Setting up CORS")
-    CORS(app, resources={r"/*": {"origins": ["https://epona.eqbay.co", "https://www.eqbay.co", "http://localhost:*", "http://127.0.0.1:*"]}})
+    CORS(app, resources={r"/*": {"origins": ["https://epona.eqbay.co", "https://*.eqbay.co", "http://localhost:*", "http://127.0.0.1:*"]}})
     print("CORS setup complete")
 
     print("Loading Segment configuration")
