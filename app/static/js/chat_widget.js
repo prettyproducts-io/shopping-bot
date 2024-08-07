@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
         messageDiv.className = 'message assistant-message';
         
         const iconImg = document.createElement('img');
-        iconImg.src = '/static/assets/epona-icon.png';
+        iconImg.src = '/static/assets/epona-logo.png';
         iconImg.className = 'assistant-icon';
         messageDiv.appendChild(iconImg);
         
