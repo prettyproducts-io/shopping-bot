@@ -422,7 +422,6 @@ try:
         return jsonify({"status": "success"})
         
     @app.route('/update_session_info', methods=['POST'])
-    @csrf.exempt  # Temporarily exempt this route from CSRF protection for testing
     def update_session_info():
         try:
             app.logger.debug(f"Received request to /update_session_info: {request.data}")

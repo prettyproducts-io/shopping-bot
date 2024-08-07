@@ -45,7 +45,7 @@
         };
 
         // Send session info to the server
-        fetch('/update_session_info', {
+        fetch('https://epona.eqbay.co/update_session_info', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -70,7 +70,7 @@
         .catch(error => {
             console.error('Error updating session info:', error);
         });
-        
+
         return sessionInfo;
     }
 
