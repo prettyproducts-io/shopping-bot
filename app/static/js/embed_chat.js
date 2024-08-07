@@ -64,7 +64,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken,
+                    'X-CSRFToken': csrfToken,
                 },
                 body: JSON.stringify(sessionInfo),
                 credentials: 'include'
