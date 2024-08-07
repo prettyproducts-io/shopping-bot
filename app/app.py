@@ -163,113 +163,126 @@ try:
     @app.route('/ask', methods=['POST'])
     @limiter.limit("10/minute")
     def ask():
-        app.logger.debug(f"Received request: {request.method} {request.url}")
-        app.logger.debug(f"Form data: {request.form}")
-
-        question = request.form.get('question')
-        csrf_token = request.form.get('csrf_token')
-
-        if not question or not csrf_token:
-            return jsonify({"error": "Missing question or CSRF token"}), 400
-
         try:
-            validate_csrf(csrf_token)
-        except Exception as e:
-            app.logger.error(f"CSRF validation failed: {str(e)}")
-            return jsonify({"error": "Invalid CSRF token"}), 400
+            app.logger.debug("Entered the /ask endpoint")
+            app.logger.debug(f"Received request: {request.method} {request.url}")
+            app.logger.debug(f"Form data: {request.form}")
 
-        form = ChatForm(request.form)
-        if form.validate():
-            question = form.question.data
+            question = request.form.get('question')
+            csrf_token = request.form.get('csrf_token')
 
-            session_id = ensure_str(session.get('sid', os.urandom(16).hex()))
-            thread_id = ensure_str(get_or_create_thread(session_id))
+            app.logger.debug(f"Extracted form fields - question: {question}, csrf_token: {csrf_token}")
+
+            if not question or not csrf_token:
+                return jsonify({"error": "Missing question or CSRF token"}), 400
 
             try:
+                validate_csrf(csrf_token)
+                app.logger.debug("CSRF token validated")
+            except Exception as e:
+                app.logger.error(f"CSRF validation failed: {str(e)}")
+                return jsonify({"error": "Invalid CSRF token"}), 400
+
+            form = ChatForm(request.form)
+            app.logger.debug(f"Form validation status: {form.validate()}")
+            if form.validate():
+                question = form.question.data
+                app.logger.debug(f"Validated question: {question}")
+
+                session_id = ensure_str(session.get('sid', os.urandom(16).hex()))
+                app.logger.debug(f"Session ID: {session_id}")
+                thread_id = ensure_str(get_or_create_thread(session_id))
                 app.logger.debug(f"Thread ID: {thread_id}")
-                # Add the user's message to the thread
-                client.beta.threads.messages.create(
-                    thread_id=thread_id,
-                    role="user",
-                    content=question
-                )
-                app.logger.debug("User message added to thread")
 
-                # Create a new run
-                run = client.beta.threads.runs.create(
-                    thread_id=thread_id,
-                    assistant_id="asst_RPpg13jrshEESBjAmIjKkpSD"
-                )
-                app.logger.debug(f"Run created with ID: {run.id}")
+                try:
+                    app.logger.debug(f"Thread ID: {thread_id}")
+                    # Add the user's message to the thread
+                    client.beta.threads.messages.create(
+                        thread_id=thread_id,
+                        role="user",
+                        content=question
+                    )
+                    app.logger.debug("User message added to thread")
 
-                def generate():
-                    start_time = time.time()
-                    timeout = 60  # Increased timeout to 60 seconds
-                    max_retries = 30  # Maximum number of status checks
+                    # Create a new run
+                    run = client.beta.threads.runs.create(
+                        thread_id=thread_id,
+                        assistant_id="asst_RPpg13jrshEESBjAmIjKkpSD"
+                    )
+                    app.logger.debug(f"Run created with ID: {run.id}")
 
-                    app.logger.debug(f"Starting status check loop with timeout={timeout}s and max_retries={max_retries}")
-                    for attempt in range(max_retries):
-                        if time.time() - start_time > timeout:
-                            app.logger.debug("Request timed out.")
-                            yield f"data: {json.dumps({'error': 'Request timed out'})}\n\n"
-                            break
+                    def generate():
+                        start_time = time.time()
+                        timeout = 60  # Increased timeout to 60 seconds
+                        max_retries = 30  # Maximum number of status checks
 
-                        try:
-                            run_status = client.beta.threads.runs.retrieve(
-                                thread_id=thread_id,
-                                run_id=run.id
-                            )
-                            app.logger.debug(f"Attempt {attempt}: Run status: {run_status.status}")
-                            app.logger.debug(f"Full run status: {run_status}")
-
-                            if run_status.status == 'completed':
-                                app.logger.debug(f"Run completed in attempt {attempt}")
-                                messages = client.beta.threads.messages.list(thread_id=thread_id, limit=1)
-                                for message in messages.data:
-                                    if message.role == "assistant":
-                                        content = message.content[0].text.value
-                                        formatted_content = format_response(content)
-                                        yield f"data: {formatted_content}\n\n"
-                                yield "event: DONE\ndata: [DONE]\n\n"
+                        app.logger.debug(f"Starting status check loop with timeout={timeout}s and max_retries={max_retries}")
+                        for attempt in range(max_retries):
+                            if time.time() - start_time > timeout:
+                                app.logger.debug("Request timed out.")
+                                yield f"data: {json.dumps({'error': 'Request timed out'})}\n\n"
                                 break
 
-                            elif run_status.status in ['failed', 'cancelled', 'expired']:
-                                app.logger.error(f"Run status is {run_status.status}. Ending loop.")
-                                yield f"data: {json.dumps({'error': f'Run {run_status.status}'})}\n\n"
-                                break
-                            elif run_status.status == 'requires_action':
-                                app.logger.warning(f"Run requires action: {run_status.required_action}")
-                                if handle_required_action(run_status, thread_id):
-                                    app.logger.debug("Handled required action, retrying status check.")
-                                    time.sleep(2)  # Wait a bit before checking again
-                                    continue
-                                else:
-                                    app.logger.error("Unable to handle required action. Ending loop.")
-                                    yield f"data: {json.dumps({'error': 'Unable to handle required action'})}\n\n"
+                            try:
+                                run_status = client.beta.threads.runs.retrieve(
+                                    thread_id=thread_id,
+                                    run_id=run.id
+                                )
+                                app.logger.debug(f"Attempt {attempt}: Run status: {run_status.status}")
+                                app.logger.debug(f"Full run status: {run_status}")
+
+                                if run_status.status == 'completed':
+                                    app.logger.debug(f"Run completed in attempt {attempt}")
+                                    messages = client.beta.threads.messages.list(thread_id=thread_id, limit=1)
+                                    for message in messages.data:
+                                        if message.role == "assistant":
+                                            content = message.content[0].text.value
+                                            formatted_content = format_response(content)
+                                            yield f"data: {formatted_content}\n\n"
+                                    yield "event: DONE\ndata: [DONE]\n\n"
                                     break
-                            else:
-                                app.logger.debug(f"Run status not final. Sleeping before next attempt.")
-                                time.sleep(2)  # Increased wait time between checks
 
-                        except Exception as e:
-                            app.logger.error(f"Error checking run status: {str(e)}")
-                            yield f"data: {json.dumps({'error': f'Error checking run status: {str(e)}'})}\n\n"
-                            break
+                                elif run_status.status in ['failed', 'cancelled', 'expired']:
+                                    app.logger.error(f"Run status is {run_status.status}. Ending loop.")
+                                    yield f"data: {json.dumps({'error': f'Run {run_status.status}'})}\n\n"
+                                    break
+                                elif run_status.status == 'requires_action':
+                                    app.logger.warning(f"Run requires action: {run_status.required_action}")
+                                    if handle_required_action(run_status, thread_id):
+                                        app.logger.debug("Handled required action, retrying status check.")
+                                        time.sleep(2)  # Wait a bit before checking again
+                                        continue
+                                    else:
+                                        app.logger.error("Unable to handle required action. Ending loop.")
+                                        yield f"data: {json.dumps({'error': 'Unable to handle required action'})}\n\n"
+                                        break
+                                else:
+                                    app.logger.debug(f"Run status not final. Sleeping before next attempt.")
+                                    time.sleep(2)  # Increased wait time between checks
 
-                    else:
-                        app.logger.debug("Maximum retries reached.")
-                        yield f"data: {json.dumps({'error': 'Maximum retries reached'})}\n\n"
+                            except Exception as e:
+                                app.logger.error(f"Error checking run status: {str(e)}")
+                                yield f"data: {json.dumps({'error': f'Error checking run status: {str(e)}'})}\n\n"
+                                break
 
-                app.logger.debug("Returning response stream")
-                return Response(stream_with_context(generate()), content_type='text/event-stream')
+                        else:
+                            app.logger.debug("Maximum retries reached.")
+                            yield f"data: {json.dumps({'error': 'Maximum retries reached'})}\n\n"
 
-            except OpenAIError as e:
-                app.logger.error(f"OpenAI API error: {str(e)}")
-                return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+                    app.logger.debug("Returning response stream")
+                    return Response(stream_with_context(generate()), content_type='text/event-stream')
 
-        else:
-            app.logger.debug(f"Form validation errors: {form.errors}")
-            return jsonify({"error": "Invalid form submission"}), 400
+                except OpenAIError as e:
+                    app.logger.error(f"OpenAI API error: {str(e)}")
+                    return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+
+            else:
+                app.logger.debug(f"Form validation errors: {form.errors}")
+                return jsonify({"error": "Invalid form submission"}), 400
+                
+        except Exception as e:
+            app.logger.error(f"An error occurred in /ask endpoint: {str(e)}")
+            return jsonify({"error": "An unexpected error occurred"}), 500
             
     def format_response(content):
         try:
