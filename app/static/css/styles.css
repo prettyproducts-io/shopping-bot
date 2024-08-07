@@ -97,7 +97,7 @@ body {
   color: white;
   font-size: 24px;
   cursor: pointer;
-  padding-bottom: 10px;
+  margin-bottom: 20px;
 }
 
 .message-container {
