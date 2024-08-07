@@ -1,4 +1,4 @@
-(async function() {
+(async function createChatWidget() {
     // Create open button
     const openButton = document.createElement('button');
     openButton.innerText = 'Chat with us';
@@ -57,11 +57,13 @@
         console.log('Session Info:', sessionInfo);
     
         try {
+            const csrfToken = await getCSRFToken();
             const response = await fetch('https://epona.eqbay.co/update_session_info', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Origin': 'https://www.eqbay.co'
+                    'Origin': 'https://www.eqbay.co',
+                    'X-CSRFToken': csrfToken
                 },
                 body: JSON.stringify(sessionInfo),
                 credentials: 'include'
@@ -85,16 +87,15 @@
         }
     }
 
-    // Create iframe for the chat widget
-    const iframe = document.createElement('iframe');
-    iframe.id = 'chat-widget-iframe';
-    
     // Get the session info
     const sessionInfo = await sendSessionInfo();
-    
-    // Append the ajs_anonymous_id to the iframe src as a query parameter
-    iframe.src = `https://epona.eqbay.co/chat_widget?anonymous_id=${encodeURIComponent(sessionInfo.ajs_anonymous_id)}`;
-    
+    console.log('Session Info:', sessionInfo);
+
+    // Create iframe for the chat widget
+    const iframe = document.createElement('iframe');
+    const anonymousId = sessionInfo?.ajs_anonymous_id || 'unknown';
+    iframe.src = `https://epona.eqbay.co/chat_widget?anonymous_id=${encodeURIComponent(anonymousId)}`;
+    iframe.id = 'chat-widget-iframe';
     iframe.style.position = 'fixed';
     iframe.style.bottom = '30px';
     iframe.style.right = '30px';
