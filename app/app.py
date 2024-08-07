@@ -49,7 +49,7 @@ try:
     print("Setting up CORS")
     CORS(app, resources={
         r"/*": {
-            "origins": ["https://www.eqbay.co", "https://eqbay.co", "http://localhost:*", "http://127.0.0.1:*"],
+            "origins": ["https://www.eqbay.co", "https://eqbay.co", "https://epona.eqbay.co"],
             "methods": ["GET", "POST", "OPTIONS"],
             "allow_headers": ["Content-Type", "X-CSRFToken"],
             "supports_credentials": True
@@ -441,15 +441,11 @@ try:
     @app.route('/update_session_info', methods=['POST', 'OPTIONS'])
     @csrf.exempt
     def update_session_info():
-        app.logger.debug(f"Method: {request.method}")
-        app.logger.debug(f"Headers: {request.headers}")
-        app.logger.debug(f"Data: {request.data}")
-        
         if request.method == 'OPTIONS':
             response = make_response()
-            response.headers.add('Access-Control-Allow-Origin', request.headers.get('Origin', 'https://www.eqbay.co'))
-            response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
-            response.headers.add('Access-Control-Allow-Methods', 'POST,OPTIONS')
+            response.headers.add('Access-Control-Allow-Origin', request.headers.get('Origin'))
+            response.headers.add('Access-Control-Allow-Headers', 'Content-Type, X-CSRFToken')
+            response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
             response.headers.add('Access-Control-Allow-Credentials', 'true')
             return response
 
@@ -457,7 +453,7 @@ try:
             origin = request.headers.get('Origin')
             app.logger.debug(f"Origin: {origin}")
             
-            allowed_origins = ['https://www.eqbay.co', 'https://eqbay.co']
+            allowed_origins = ['https://www.eqbay.co', 'https://eqbay.co', 'https://epona.eqbay.co']
             if not origin or origin not in allowed_origins:
                 app.logger.error(f"Invalid or missing origin: Origin={origin}")
                 return jsonify({"status": "error", "message": "Invalid or missing origin"}), 400
@@ -468,10 +464,6 @@ try:
 
             if not session_info:
                 return jsonify({"status": "error", "message": "No session info provided"}), 400
-
-            # Check if session info has already been stored
-            if 'client_session_info' in session and session['client_session_info'] == session_info:
-                return jsonify({"status": "success", "message": "Session info already up to date"}), 200
 
             # Store session info
             session['client_session_info'] = session_info

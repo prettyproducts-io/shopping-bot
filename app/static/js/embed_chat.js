@@ -73,14 +73,15 @@
             console.log('Response status:', response.status);
             console.log('Response headers:', response.headers);
     
-            const text = await response.text();
-            console.log('Response text:', text);
-    
             if (!response.ok) {
+                const text = await response.text();
+                console.log('Response text:', text);
                 throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
             }
     
-            return JSON.parse(text);
+            const data = await response.json();
+            console.log('Response data:', data);
+            return data;
         } catch (error) {
             console.error('Error updating session info:', error);
             console.error('Error details:', error.message);
