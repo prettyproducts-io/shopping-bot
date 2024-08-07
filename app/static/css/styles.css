@@ -89,7 +89,7 @@ body {
 .message-container {
   display: flex;
   align-items: flex-start;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 .assistant-container {
@@ -149,15 +149,13 @@ body {
 
 #epona-chat-open-button {
   position: fixed;
-  bottom: 30px;
-  right: 30px;
+  bottom: 20px;
+  right: 20px;
   background-color: #FF6F61;
   color: white;
-  padding: 16px 20px;
+  padding: 12px 20px;
   border: none;
   cursor: pointer;
-  opacity: 0.9;
-  width: 140px;
   border-radius: 25px;
   z-index: 9999;
   font-family: 'Public Sans', sans-serif;
@@ -166,12 +164,37 @@ body {
   line-height: 1;
   text-align: center;
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  transition: opacity 0.3s ease;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#epona-chat-open-button span {
+  margin-right: 10px;
+}
+
+#epona-chat-open-button .arrow-icon {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid white;
+  transition: transform 0.3s ease;
+}
+
+#epona-chat-open-button.open .arrow-icon {
+  transform: rotate(180deg);
 }
 
 #epona-chat-open-button:hover {
-  opacity: 1;
+  background-color: #ff8277;
 }
+
+#chat-widget-iframe {
+  transition: all 0.3s ease;
+}
+
 
 /* Back button */
 .back-button {

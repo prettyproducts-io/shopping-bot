@@ -4,6 +4,7 @@
     openButton.innerText = 'Chat with Epona';
     openButton.id = 'epona-chat-open-button';
     openButton.className = 'epona-chat-open-button';
+    openButton.innerHTML = '<span>Chat with Epona</span><i class="arrow-icon"></i>';
     openButton.onclick = toggleChatWidget;
  
     document.body.appendChild(openButton);
@@ -84,7 +85,7 @@
     iframe.src = `https://epona.eqbay.co/chat_widget?anonymous_id=${encodeURIComponent(anonymousId)}`;
     iframe.id = 'chat-widget-iframe';
     iframe.style.position = 'fixed';
-    iframe.style.bottom = '30px';
+    iframe.style.bottom = '80px';
     iframe.style.right = '30px';
     iframe.style.width = '400px';
     iframe.style.height = '550px';
