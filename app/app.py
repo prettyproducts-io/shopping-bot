@@ -19,6 +19,7 @@ from wtforms.validators import DataRequired
 import datetime
 import time
 from .session_manager import get_or_create_thread, add_message_to_thread, ensure_str
+from .process_document import get_product_info
 from .redis_config import redis_connection
 print("Imports complete")
 
@@ -161,7 +162,6 @@ try:
         return jsonify(access_token=token)
 
     @app.route('/ask', methods=['POST'])
-    @limiter.limit("10/minute")
     def ask():
         try:
             app.logger.debug("Entered the /ask endpoint")
@@ -174,9 +174,11 @@ try:
             app.logger.debug(f"Extracted form fields - question: {question}, csrf_token: {csrf_token}")
 
             if not question or not csrf_token:
+                app.logger.debug("Missing question or CSRF token")
                 return jsonify({"error": "Missing question or CSRF token"}), 400
 
             try:
+                app.logger.debug("Validating CSRF token")
                 validate_csrf(csrf_token)
                 app.logger.debug("CSRF token validated")
             except Exception as e:
@@ -213,8 +215,8 @@ try:
 
                     def generate():
                         start_time = time.time()
-                        timeout = 60  # Increased timeout to 60 seconds
-                        max_retries = 30  # Maximum number of status checks
+                        timeout = 60
+                        max_retries = 30
 
                         app.logger.debug(f"Starting status check loop with timeout={timeout}s and max_retries={max_retries}")
                         for attempt in range(max_retries):
@@ -250,15 +252,15 @@ try:
                                     app.logger.warning(f"Run requires action: {run_status.required_action}")
                                     if handle_required_action(run_status, thread_id):
                                         app.logger.debug("Handled required action, retrying status check.")
-                                        time.sleep(2)  # Wait a bit before checking again
+                                        time.sleep(2)
                                         continue
                                     else:
                                         app.logger.error("Unable to handle required action. Ending loop.")
                                         yield f"data: {json.dumps({'error': 'Unable to handle required action'})}\n\n"
                                         break
                                 else:
-                                    app.logger.debug(f"Run status not final. Sleeping before next attempt.")
-                                    time.sleep(2)  # Increased wait time between checks
+                                    app.logger.debug("Run status not final. Sleeping before next attempt.")
+                                    time.sleep(2)
 
                             except Exception as e:
                                 app.logger.error(f"Error checking run status: {str(e)}")
@@ -274,12 +276,12 @@ try:
 
                 except OpenAIError as e:
                     app.logger.error(f"OpenAI API error: {str(e)}")
-                    return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+                    return jsonify({"error": f"An error occurred: {str(e)}")}, 500
 
             else:
                 app.logger.debug(f"Form validation errors: {form.errors}")
                 return jsonify({"error": "Invalid form submission"}), 400
-                
+
         except Exception as e:
             app.logger.error(f"An error occurred in /ask endpoint: {str(e)}")
             return jsonify({"error": "An unexpected error occurred"}), 500
@@ -358,6 +360,17 @@ try:
         except Exception as e:
             app.logger.error(f"Error clearing session: {str(e)}")
             return "Error clearing session", 500
+        
+    @app.route('/test', methods=['POST'])
+    def test_endpoint():
+        try:
+            app.logger.debug("Entered the /test endpoint")
+            data = request.json or {}
+            app.logger.debug(f"Test endpoint data: {data}")
+            return jsonify({"message": "Test endpoint reached", "data": data}), 200
+        except Exception as e:
+            app.logger.error(f"Error in /test endpoint: {str(e)}")
+            return jsonify({"error": "An unexpected error occurred"}), 500
 
 except Exception as e:
     print(f"An error occurred during initialization: {str(e)}")
