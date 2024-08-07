@@ -61,9 +61,13 @@ try:
         SESSION_USE_SIGNER=True,
         SESSION_REDIS=redis_connection,
         SESSION_COOKIE_HTTPONLY=True,
-        SESSION_COOKIE_SECURE=False,  # Changed from True
+        SESSION_COOKIE_SECURE=True,  # Ensure cookies are sent over HTTPS only
         SESSION_COOKIE_SAMESITE='Lax',
-        SESSION_KEY_PREFIX='session:'
+        SESSION_KEY_PREFIX='session:',
+        REMEMBER_COOKIE_SECURE=True, # Ensure 'remember me' cookies are sent over HTTPS
+        WTF_CSRF_ENABLED=True,
+        WTF_CSRF_SECRET_KEY=os.environ.get("SECRET_KEY"),
+        WTF_CSRF_SSL_STRICT=True     # Ensure CSRF protection is strict for HTTPS
     )
     print("Flask configuration updated")
 
@@ -73,8 +77,7 @@ try:
     app.config['CELERY_BROKER_URL'] = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     app.config['CELERY_RESULT_BACKEND'] = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     app.config['DEBUG'] = True
-    app.config['WTF_CSRF_ENABLED'] = True
-    app.config['WTF_CSRF_SECRET_KEY'] = os.getenv("SECRET_KEY")
+    app.config['PREFERRED_URL_SCHEME'] = 'https'
     print("Additional Flask config options set")
 
     # Initialize extensions
