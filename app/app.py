@@ -135,21 +135,12 @@ try:
             session_id = ensure_str(session['sid'])
             app.logger.debug(f"Home route: session_id: {session_id}")
             
-            # Identify the user
-            analytics.identify(session_id, {
-                'created_at': datetime.datetime.now().isoformat()
-            })
-            
-            # Track the page view
-            analytics.page(
-                user_id=session_id,
-                category=None,
-                name='Home',
-                properties={
-                    'url': 'https://epona.eqbay.co',
-                    'path': '/'
-                }
-            )
+            # Identify the user (if you have the anonymous_id)
+            anonymous_id = request.args.get('anonymous_id')  # Get from query parameter
+            if anonymous_id:
+                analytics.identify(session_id, {
+                    'anonymous_id': anonymous_id
+                })
             
             return render_template('index.html', form=form, session_id=session_id)
         except Exception as e:
@@ -193,6 +184,19 @@ try:
                 app.logger.debug(f"Validated question: {question}")
 
                 session_id = ensure_str(session.get('sid', os.urandom(16).hex()))
+
+                # Track chat session start (if it's a new session)
+                if 'chat_session_started' not in session:
+                    analytics.track(session_id, 'Chat Session Started', {
+                        'session_id': session_id
+                    })
+                    session['chat_session_started'] = True
+                
+                # Track user message
+                analytics.track(session_id, 'User Message Sent', {
+                    'question': question
+                })
+
                 app.logger.debug(f"Session ID: {session_id}")
                 thread_id = ensure_str(get_or_create_thread(session_id))
                 app.logger.debug(f"Thread ID: {thread_id}")
@@ -241,6 +245,12 @@ try:
                                         if message.role == "assistant":
                                             content = message.content[0].text.value
                                             formatted_content = format_response(content)
+
+                                            # Track bot response
+                                            analytics.track(session_id, 'Bot Response Sent', {
+                                                'response': formatted_content
+                                            })
+
                                             yield f"data: {formatted_content}\n\n"
                                     yield "event: DONE\ndata: [DONE]\n\n"
                                     break
@@ -346,7 +356,8 @@ try:
     @app.route('/welcome', methods=['GET'])
     def get_welcome_message():
         welcome_message = config.get('welcome_message', '')
-        return jsonify({"welcome_message": welcome_message})
+        csrf_token = generate_csrf()
+        return jsonify({"welcome_message": welcome_message, "csrf_token": csrf_token})
 
     @app.route('/static/<path:filename>')
     def serve_static(filename):
@@ -376,11 +387,55 @@ try:
     @app.route('/chat_widget')
     def chat_widget():
         form = ChatForm()
+        session_id = ensure_str(session.get('sid', os.urandom(16).hex()))
+        
+        # Get anonymous_id from query parameters
+        anonymous_id = request.args.get('anonymous_id')
+        
+        if anonymous_id:
+            analytics.track(anonymous_id, 'Epona Widget Opened', {
+                'session_id': session_id
+            })
+        
         return render_template('chat_widget.html', form=form)
 
     @app.route('/embed_chat.js')
     def embed_chat():
+        session_id = ensure_str(session.get('sid', os.urandom(16).hex()))
+        
+        # Get session info from query parameters instead of JSON
+        anonymous_id = request.args.get('anonymous_id')
+        
+        if anonymous_id:
+            analytics.identify(session_id, {
+                'anonymous_id': anonymous_id
+            })
+        
         return send_from_directory(app.static_folder, 'embed_chat.js')
+    
+    @app.route('/end_chat', methods=['POST'])
+    def end_chat():
+        session_id = ensure_str(session.get('sid', os.urandom(16).hex()))
+        analytics.track(session_id, 'Chat Session Ended', {
+            'session_id': session_id
+        })
+        session.pop('chat_session_started', None)
+        return jsonify({"status": "success"})
+    
+    @app.route('/update_session_info', methods=['POST'])
+    def update_session_info():
+        session_info = request.json
+        session['client_session_info'] = session_info
+        
+        # You can use this information to enrich your analytics data
+        analytics.identify(session.sid, {
+            'anonymous_id': session_info.get('ajs_anonymous_id'),
+            'first_session': session_info.get('first_session'),
+            'cart_data': session_info.get('_pmw_session_data_cart'),
+            'pages_visit_count': session_info.get('klaviyoPagesVisitCount')
+        })
+        
+        return jsonify({"status": "success"})
 
 except Exception as e:
     print(f"An error occurred during initialization: {str(e)}")

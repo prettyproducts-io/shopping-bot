@@ -23,6 +23,27 @@
     </div>
     <script src="/static/js/chat.js"></script>
     <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            fetch('/welcome')
+                .then(response => response.json())
+                .then(data => {
+                    const csrfTokenField = document.querySelector('input[name="csrf_token"]');
+                    if (csrfTokenField) {
+                        csrfTokenField.value = data.csrf_token;
+                    }
+                    // After setting the CSRF token, initialize the chat
+                    initializeChat();
+                })
+                .catch(error => console.error('Error fetching CSRF token:', error));
+        });
+    
+        function initializeChat() {
+            // Move the chat initialization code here
+            const chatScript = document.createElement('script');
+            chatScript.src = '/static/js/chat.js';
+            document.body.appendChild(chatScript);
+        }
+        
         function closeChat() {
             const iframe = parent.document.getElementById('chat-widget-iframe');
             if (iframe) {
@@ -33,18 +54,20 @@
                 openButton.style.display = 'block';
             }
         }
-
-        document.addEventListener("DOMContentLoaded", function() {
-            fetch('/welcome')
-                .then(response => response.json())
-                .then(data => {
-                    const csrfTokenField = document.querySelector('input[name="csrf_token"]');
-                    if (csrfTokenField) {
-                        csrfTokenField.value = data.csrf_token;
-                    }
-                })
-                .catch(error => console.error('Error fetching CSRF token:', error));
+    </script>
+    <script>
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'SESSION_INFO') {
+                fetch('/update_session_info', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify(event.data.data)
+                });
+            }
         });
     </script>
 </body>
-</html>
+</html>                                                     

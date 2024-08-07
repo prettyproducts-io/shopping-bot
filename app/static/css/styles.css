@@ -33,21 +33,37 @@ body {
   flex-direction: column;
   z-index: 10000;
   overflow: hidden;
-  display: none; /* Hidden by default */
+  /* Remove the 'display: none;' to make it visible by default */
+}
+
+@media (max-width: 768px) {
+  #chat-widget-container {
+    width: 90%;
+    height: 80vh;
+    bottom: 10px;
+    right: 5%;
+    /* Remove 'left: 5%;' to keep it on the right side */
+  }
+
+  .open-button {
+    bottom: 10px;
+    right: 5%;
+  }
 }
 
 .open-button {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
   background-color: #3b5998;
   color: white;
   padding: 16px 20px;
   border: none;
   cursor: pointer;
   opacity: 0.8;
-  position: fixed;
-  bottom: 23px;
-  right: 28px;
   width: 140px;
   border-radius: 25px;
+  z-index: 9999; /* Ensure it's below the chat widget */
 }
 
 .open-button:hover {

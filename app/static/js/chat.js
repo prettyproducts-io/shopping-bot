@@ -113,22 +113,22 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         const question = chatInput.value.trim();
         if (!question) return;
-
+    
         appendMessage('user', question);
         chatInput.value = '';
-
+    
         const formData = new FormData(chatForm);
         formData.set('question', question);
-
+    
         try {
             const response = await fetch('/ask', {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-CSRFToken': formData.get('csrf_token')
+                    'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
                 }
             });
-
+    
             if (response.ok) {
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
