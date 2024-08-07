@@ -275,24 +275,6 @@ button:hover {
   text-decoration: none;
 }
 
-@media (max-width: 768px) {
-  #chat-widget-container {
-    width: 90%;
-    height: 80vh;
-    bottom: 10px;
-    right: 5%;
-    left: 5%;
-  }
-
-  .message {
-    max-width: 90%;
-  }
-
-  .product {
-    max-width: 100%;
-  }
-}
-
 .visually-hidden {
   position: absolute;
   width: 1px;
