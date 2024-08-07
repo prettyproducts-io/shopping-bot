@@ -43,7 +43,7 @@ try:
     client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
         
     print("Creating Flask app")
-    app = Flask(__name__)
+    app = Flask(__name__, template_folder='templates', static_folder='static')
     print("Flask app created")
 
     print("Setting up CORS")
@@ -375,7 +375,8 @@ try:
         
     @app.route('/chat_widget')
     def chat_widget():
-        return send_from_directory(app.static_folder, 'chat_widget.html')
+        form = ChatForm()
+        return render_template('chat_widget.html', form=form)
 
     @app.route('/embed_chat.js')
     def embed_chat():

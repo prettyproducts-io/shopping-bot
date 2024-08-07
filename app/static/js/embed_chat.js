@@ -1,4 +1,5 @@
 (function() {
+    // Create open button
     const openButton = document.createElement('button');
     openButton.innerText = 'Chat with us';
     openButton.className = 'open-button';
@@ -12,6 +13,7 @@
 
     document.body.appendChild(openButton);
 
+    // Create iframe for the chat widget
     const iframe = document.createElement('iframe');
     iframe.id = 'chat-widget-iframe';
     iframe.src = 'https://epona.eqbay.co/chat_widget';
@@ -23,6 +25,10 @@
     iframe.style.border = 'none';
     iframe.style.zIndex = '10001';
     iframe.style.display = 'none';
+
+    iframe.onload = () => {
+        console.log('Chat widget loaded');
+    };
 
     document.body.appendChild(iframe);
 })();
