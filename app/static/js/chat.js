@@ -14,9 +14,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function formatMarkdown(text) {
         return text
-            .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')  // Bold text
-            .replace(/\n{2,}/g, '</p><p>')                       // Double newlines as paragraph breaks
-            .replace(/\n/g, '<br>')                              // Single newlines as line breaks
+            .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')   // Bold text
+            .replace(/\n{2,}/g, '</p><p>')                        // Double newlines as paragraph breaks
+            .replace(/\n/g, '<br>')                               // Single newlines as line breaks
             .trim();
     }
 
@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
-
+                    
                     const chunk = decoder.decode(value);
                     const lines = chunk.split('\n');
 
@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     window.addEventListener('load', getWelcomeMessage);
-
+        
     chatInput.addEventListener('input', function() {
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
