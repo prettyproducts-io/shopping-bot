@@ -42,7 +42,7 @@
             credentials: 'include'
         });
         const data = await response.json();
-        console.log('CSRF Token:', data.csrf_token); // Log the token
+        console.log('CSRF Token:', data.csrf_token);
         return data.csrf_token;
     }
 
@@ -103,10 +103,24 @@
     iframe.style.zIndex = '10001';
     iframe.style.display = 'none';
 
+    function tryTrackEvent(retries = 3) {
+        if (window.analytics && typeof window.analytics.track === 'function') {
+            window.analytics.track('Chat Widget Initialized', {
+                anonymousId: sessionInfo.ajs_anonymous_id,
+                url: window.location.href,
+                timestamp: new Date().toISOString()
+            });
+        } else if (retries > 0) {
+            setTimeout(() => tryTrackEvent(retries - 1), 1000); // Wait 1 second before retrying
+        } else {
+            console.warn('Failed to track Chat Widget Initialized event: analytics not available');
+        }
+    }
+    
     iframe.onload = () => {
         console.log('Chat widget loaded');
-        // You can send additional info to the iframe if needed
         iframe.contentWindow.postMessage({type: 'SESSION_INFO', data: sessionInfo}, '*');
+        tryTrackEvent();
     };
 
     document.body.appendChild(iframe);

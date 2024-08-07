@@ -48,7 +48,7 @@ try:
 
     print("Setting up CORS")
     CORS(app, resources={
-        r"/update_session_info": {
+        r"/*": {
             "origins": ["https://www.eqbay.co", "http://localhost:*", "http://127.0.0.1:*"],
             "methods": ["POST", "OPTIONS"],
             "allow_headers": ["Content-Type", "X-CSRFToken"],
@@ -360,11 +360,22 @@ try:
             return True
         return False
 
-    @app.route('/welcome', methods=['GET'])
+    @app.route('/welcome', methods=['GET', 'OPTIONS'])
     def get_welcome_message():
+        if request.method == 'OPTIONS':
+            response = make_response()
+            response.headers.add('Access-Control-Allow-Origin', 'https://www.eqbay.co')
+            response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+            response.headers.add('Access-Control-Allow-Methods', 'GET,OPTIONS')
+            response.headers.add('Access-Control-Allow-Credentials', 'true')
+            return response
+
         welcome_message = config.get('welcome_message', '')
         csrf_token = generate_csrf()
-        return jsonify({"welcome_message": welcome_message, "csrf_token": csrf_token})
+        response = jsonify({"welcome_message": welcome_message, "csrf_token": csrf_token})
+        response.headers.add('Access-Control-Allow-Origin', 'https://www.eqbay.co')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response
 
     @app.route('/static/<path:filename>')
     def serve_static(filename):
