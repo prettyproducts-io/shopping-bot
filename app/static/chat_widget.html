@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eqbay Chat Widget</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div id="chatbox"></div>
+    <form id="chat-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <textarea id="chat-input" placeholder="Type your message..."></textarea>
+        <button type="submit">Send</button>
+    </form>
+    <script>
+        // This part ensures the Flask CSRF token is injected into the form
+        document.addEventListener("DOMContentLoaded", function() {
+            fetch('/welcome')  // Adjust this based on actual CSRF token availability
+                .then(response => response.json())
+                .then(data => {
+                    document.querySelector('input[name="csrf_token"]').value = data.csrf_token;
+                })
+                .catch(error => console.error('Error fetching CSRF token:', error));
+        });
+    </script>
+    <script src="/static/js/chat.js"></script>
+</body>
+</html>

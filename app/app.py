@@ -372,6 +372,10 @@ try:
         except Exception as e:
             app.logger.error(f"Error in /test endpoint: {str(e)}")
             return jsonify({"error": "An unexpected error occurred"}), 500
+        
+    @app.route('/chat_widget')
+    def chat_widget():
+        return send_from_directory(app.static_folder, 'chat_widget.html')
 
 except Exception as e:
     print(f"An error occurred during initialization: {str(e)}")
