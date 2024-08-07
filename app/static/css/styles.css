@@ -168,9 +168,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-width: 140px; /* Adjust as needed */
 }
 
-#epona-chat-open-button span {
+#epona-chat-open-button .button-text {
   margin-right: 10px;
 }
 
@@ -181,6 +182,15 @@ body {
   border-right: 5px solid transparent;
   border-top: 5px solid white;
   transition: transform 0.3s ease;
+}
+
+#epona-chat-open-button.open {
+  padding: 12px;
+  min-width: unset;
+  width: 40px; /* Adjust size as needed */
+  height: 40px; /* Adjust size as needed */
+  border-radius: 50%;
+  justify-content: center;
 }
 
 #epona-chat-open-button.open .arrow-icon {

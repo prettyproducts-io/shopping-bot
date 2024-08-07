@@ -122,13 +122,16 @@
     function toggleChatWidget() {
         const iframe = document.getElementById('chat-widget-iframe');
         const openButton = document.getElementById('epona-chat-open-button');
+        const buttonText = openButton.querySelector('.button-text');
         if (iframe && openButton) {
             if (iframe.style.display === 'none') {
                 iframe.style.display = 'block';
-                openButton.style.display = 'none';
+                openButton.classList.add('open');
+                buttonText.style.display = 'none';
             } else {
                 iframe.style.display = 'none';
-                openButton.style.display = 'block';
+                openButton.classList.remove('open');
+                buttonText.style.display = 'inline';
             }
         }
     }
