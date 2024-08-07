@@ -9,7 +9,7 @@
         }
         openButton.style.display = 'none';
     };
-    
+
     document.body.appendChild(openButton);
 
     const iframe = document.createElement('iframe');
@@ -23,6 +23,6 @@
     iframe.style.border = 'none';
     iframe.style.zIndex = '10001';
     iframe.style.display = 'none';
-    
+
     document.body.appendChild(iframe);
 })();
