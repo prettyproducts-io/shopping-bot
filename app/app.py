@@ -215,8 +215,8 @@ try:
 
                     def generate():
                         start_time = time.time()
-                        timeout = 60
-                        max_retries = 30
+                        timeout = 60  # Increased timeout to 60 seconds
+                        max_retries = 30  # Maximum number of status checks
 
                         app.logger.debug(f"Starting status check loop with timeout={timeout}s and max_retries={max_retries}")
                         for attempt in range(max_retries):
@@ -252,15 +252,15 @@ try:
                                     app.logger.warning(f"Run requires action: {run_status.required_action}")
                                     if handle_required_action(run_status, thread_id):
                                         app.logger.debug("Handled required action, retrying status check.")
-                                        time.sleep(2)
+                                        time.sleep(2)  # Wait a bit before checking again
                                         continue
                                     else:
                                         app.logger.error("Unable to handle required action. Ending loop.")
                                         yield f"data: {json.dumps({'error': 'Unable to handle required action'})}\n\n"
                                         break
                                 else:
-                                    app.logger.debug("Run status not final. Sleeping before next attempt.")
-                                    time.sleep(2)
+                                    app.logger.debug(f"Run status not final. Sleeping before next attempt.")
+                                    time.sleep(2)  # Increased wait time between checks
 
                             except Exception as e:
                                 app.logger.error(f"Error checking run status: {str(e)}")
@@ -276,7 +276,7 @@ try:
 
                 except OpenAIError as e:
                     app.logger.error(f"OpenAI API error: {str(e)}")
-                    return jsonify({"error": f"An error occurred: {str(e)}")}, 500
+                    return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
             else:
                 app.logger.debug(f"Form validation errors: {form.errors}")
