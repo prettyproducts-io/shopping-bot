@@ -345,5 +345,5 @@ except Exception as e:
 
 if __name__ == '__main__':
     print("Starting Flask development server...")
-    app.run(debug=True)
+    app.run(debug=True, ssl_context=('cert.pem', 'key.pem'))
     print("Flask server stopped.")
