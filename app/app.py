@@ -51,7 +51,7 @@ try:
         r"/*": {
             "origins": ["https://epona.eqbay.co", "https://www.eqbay.co", "http://localhost:*", "http://127.0.0.1:*"],
             "methods": ["GET", "POST", "OPTIONS"],
-            "allow_headers": ["Content-Type", "X-CSRFToken"],
+            "allow_headers": ["Content-Type", "X-CSRFToken", "Referer"],
             "supports_credentials": True
         }
     })
@@ -429,11 +429,13 @@ try:
             response.headers["Access-Control-Allow-Origin"] = request.headers.get("Origin")
             response.headers["Access-Control-Allow-Credentials"] = "true"
             response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
-            response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken, Referer"
             return response
 
         try:
             app.logger.debug(f"Received request to /update_session_info: {request.data}")
+            app.logger.debug(f"Referrer: {request.headers.get('Referer')}")
+            app.logger.debug(f"Origin: {request.headers.get('Origin')}")
             session_info = request.json
             if not session_info:
                 app.logger.error("No JSON data received in /update_session_info")
