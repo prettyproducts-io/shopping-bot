@@ -437,6 +437,14 @@ try:
             return response
 
         try:
+            # Check if the referrer is allowed
+            referrer = request.headers.get('Referer')
+            app.logger.debug(f"Referrer: {referrer}")
+            allowed_referrers = ['https://www.eqbay.co/', 'https://epona.eqbay.co/']
+            if not referrer or not any(referrer.startswith(allowed_ref) for allowed_ref in allowed_referrers):
+                app.logger.error(f"Invalid referrer: {referrer}")
+                return jsonify({"status": "error", "message": "Invalid referrer"}), 400
+
             session_info = request.json
             app.logger.debug(f"Parsed JSON: {session_info}")
             if not session_info:
