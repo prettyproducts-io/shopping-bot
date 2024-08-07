@@ -39,7 +39,7 @@ try:
     print("Configuration loaded")
 
     # Initialize OpenAI client
-    client = OpenAI(api_key=config['openai_api_key'])
+    client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
         
     print("Creating Flask app")
     app = Flask(__name__)
@@ -70,11 +70,11 @@ try:
     print("Setting additional Flask config options")
     app.config['BASIC_AUTH_USERNAME'] = os.getenv('BASIC_AUTH_USERNAME')
     app.config['BASIC_AUTH_PASSWORD'] = os.getenv('BASIC_AUTH_PASSWORD')
-    app.config['CELERY_BROKER_URL'] = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
-    app.config['CELERY_RESULT_BACKEND'] = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+    app.config['CELERY_BROKER_URL'] = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    app.config['CELERY_RESULT_BACKEND'] = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     app.config['DEBUG'] = True
     app.config['WTF_CSRF_ENABLED'] = True
-    app.config['WTF_CSRF_SECRET_KEY'] = os.environ.get("SECRET_KEY")
+    app.config['WTF_CSRF_SECRET_KEY'] = os.getenv("SECRET_KEY")
     print("Additional Flask config options set")
 
     # Initialize extensions
@@ -90,7 +90,7 @@ try:
     limiter = Limiter(
         get_remote_address,
         app=app,
-        storage_uri=os.environ.get("REDIS_URL"),
+        storage_uri=os.getenv("REDIS_URL"),
         storage_options={"socket_connect_timeout": 30},
         strategy="fixed-window", # or "moving-window"
     )
