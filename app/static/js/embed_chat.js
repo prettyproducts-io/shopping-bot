@@ -70,6 +70,7 @@
         .catch(error => {
             console.error('Error updating session info:', error);
         });
+        
         return sessionInfo;
     }
 

@@ -434,15 +434,14 @@ try:
             app.logger.debug(f"Received session info: {session_info}")
 
             session['client_session_info'] = session_info
-            
-            # You can use this information to enrich your analytics data
+
             analytics.identify(session.sid, {
                 'anonymous_id': session_info.get('ajs_anonymous_id'),
                 'first_session': session_info.get('first_session'),
                 'cart_data': session_info.get('_pmw_session_data_cart'),
                 'pages_visit_count': session_info.get('klaviyoPagesVisitCount')
             })
-            
+
             return jsonify({"status": "success"})
         except Exception as e:
             app.logger.error(f"Error in /update_session_info: {str(e)}")
