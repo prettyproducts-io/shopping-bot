@@ -122,6 +122,9 @@ try:
         question = TextAreaField('Question', validators=[DataRequired()])
 
     @app.before_request
+    def log_request_info():
+        app.logger.debug('Headers: %s', request.headers)
+        app.logger.debug('Body: %s', request.get_data())
     def before_request():
         app.logger.debug(f"Session before request: {session.items()}")
         if 'sid' not in session:
@@ -448,19 +451,15 @@ try:
             return response
 
         try:
-            # Check if the origin is allowed instead of referrer
             origin = request.headers.get('Origin')
+            referer = request.headers.get('Referer')
             app.logger.debug(f"Origin: {origin}")
-            allowed_origins = ['https://www.eqbay.co', 'https://epona.eqbay.co']
-            if not origin or origin not in allowed_origins:
-                app.logger.error(f"Invalid origin: {origin}")
-                return jsonify({"status": "error", "message": "Invalid origin"}), 400
-
-            session_info = request.json
-            app.logger.debug(f"Parsed JSON: {session_info}")
-            if not session_info:
-                app.logger.error("No JSON data received in /update_session_info")
-                return jsonify({"status": "error", "message": "No data provided"}), 400
+            app.logger.debug(f"Referer: {referer}")
+            
+            allowed_origin = 'https://www.eqbay.co'
+            if origin != allowed_origin or not referer.startswith(allowed_origin):
+                app.logger.error(f"Invalid origin or referer: Origin={origin}, Referer={referer}")
+                return jsonify({"status": "error", "message": "Invalid origin or referer"}), 400
 
             app.logger.debug(f"Received session info: {session_info}")
 
@@ -477,10 +476,11 @@ try:
             response.headers.add('Access-Control-Allow-Origin', 'https://www.eqbay.co')
             response.headers.add('Access-Control-Allow-Credentials', 'true')
             return response
+        
         except Exception as e:
             app.logger.error(f"Error in /update_session_info: {str(e)}")
             response = jsonify({"status": "error", "message": str(e)})
-            response.headers["Access-Control-Allow-Origin"] = request.headers.get("Origin")
+            response.headers["Access-Control-Allow-Origin"] = 'https://www.eqbay.co'
             response.headers["Access-Control-Allow-Credentials"] = "true"
             return response
 
