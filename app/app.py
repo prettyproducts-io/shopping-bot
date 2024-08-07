@@ -421,21 +421,29 @@ try:
         })
         session.pop('chat_session_started', None)
         return jsonify({"status": "success"})
-    
+        
     @app.route('/update_session_info', methods=['POST'])
     def update_session_info():
-        session_info = request.json
-        session['client_session_info'] = session_info
-        
-        # You can use this information to enrich your analytics data
-        analytics.identify(session.sid, {
-            'anonymous_id': session_info.get('ajs_anonymous_id'),
-            'first_session': session_info.get('first_session'),
-            'cart_data': session_info.get('_pmw_session_data_cart'),
-            'pages_visit_count': session_info.get('klaviyoPagesVisitCount')
-        })
-        
-        return jsonify({"status": "success"})
+        try:
+            session_info = request.json
+            if not session_info:
+                app.logger.error("No JSON data received in /update_session_info")
+                return jsonify({"status": "error", "message": "No data provided"}), 400
+
+            session['client_session_info'] = session_info
+            
+            # You can use this information to enrich your analytics data
+            analytics.identify(session.sid, {
+                'anonymous_id': session_info.get('ajs_anonymous_id'),
+                'first_session': session_info.get('first_session'),
+                'cart_data': session_info.get('_pmw_session_data_cart'),
+                'pages_visit_count': session_info.get('klaviyoPagesVisitCount')
+            })
+            
+            return jsonify({"status": "success"})
+        except Exception as e:
+            app.logger.error(f"Error in /update_session_info: {str(e)}")
+            return jsonify({"status": "error", "message": str(e)}), 500
 
 except Exception as e:
     print(f"An error occurred during initialization: {str(e)}")

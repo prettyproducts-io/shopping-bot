@@ -51,9 +51,19 @@
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(sessionInfo)
-        }).then(response => response.json())
-          .then(data => console.log('Session info updated:', data))
-          .catch(error => console.error('Error updating session info:', error));
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => console.log('Session info updated:', data))
+        .catch(error => {
+            console.error('Error updating session info:', error);
+            // Log the response text if possible
+            error.response && error.response.text().then(text => console.error('Response text:', text));
+        });
 
         return sessionInfo;
     }
