@@ -32,6 +32,25 @@ body {
   display: flex;
   flex-direction: column;
   z-index: 10000;
+  display: none; /* Hidden by default */
+}
+
+.open-button {
+  background-color: #3b5998;
+  color: white;
+  padding: 16px 20px;
+  border: none;
+  cursor: pointer;
+  opacity: 0.8;
+  position: fixed;
+  bottom: 23px;
+  right: 28px;
+  width: 280px;
+  border-radius: 25px;
+}
+
+.open-button:hover {
+  opacity: 1;
 }
 
 .chat-header {
@@ -40,6 +59,7 @@ body {
   padding: 10px;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
+  text-align: center;
 }
 
 .chat-header h2 {
@@ -75,6 +95,15 @@ button {
   border-radius: 18px;
   padding: 8px 16px;
   cursor: pointer;
+}
+
+button.cancel {
+  background-color: red;
+  color: white;
+}
+
+button:hover {
+  opacity: 1;
 }
 
 .message {
