@@ -376,6 +376,10 @@ try:
     @app.route('/chat_widget')
     def chat_widget():
         return send_from_directory(app.static_folder, 'chat_widget.html')
+    
+    @app.route('/embed_chat.js')
+    def embed_chat():
+        return send_from_directory(app.static_folder, 'embed_chat.js')
 
 except Exception as e:
     print(f"An error occurred during initialization: {str(e)}")
