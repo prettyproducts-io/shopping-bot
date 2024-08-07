@@ -47,7 +47,10 @@ try:
     print("Flask app created")
 
     print("Setting up CORS")
-    CORS(app, resources={r"/*": {"origins": ["https://epona.eqbay.co", "https://*.eqbay.co", "http://localhost:*", "http://127.0.0.1:*"]}})
+    CORS(app, resources={
+        r"/*": {"origins": ["https://epona.eqbay.co", "https://*.eqbay.co", "http://localhost:*", "http://127.0.0.1:*"]},
+        r"/update_session_info": {"origins": "*", "methods": ["POST"]}
+    })
     print("CORS setup complete")
 
     print("Loading Segment configuration")
@@ -425,10 +428,13 @@ try:
     @app.route('/update_session_info', methods=['POST'])
     def update_session_info():
         try:
+            app.logger.debug(f"Received request to /update_session_info: {request.data}")
             session_info = request.json
             if not session_info:
                 app.logger.error("No JSON data received in /update_session_info")
                 return jsonify({"status": "error", "message": "No data provided"}), 400
+
+            app.logger.debug(f"Received session info: {session_info}")
 
             session['client_session_info'] = session_info
             

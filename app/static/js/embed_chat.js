@@ -50,19 +50,21 @@
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(sessionInfo)
+            body: JSON.stringify(sessionInfo),
+            credentials: 'include'  // Include cookies in the request
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                return response.text().then(text => {
+                    console.error('Server response:', text);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                });
             }
             return response.json();
         })
         .then(data => console.log('Session info updated:', data))
         .catch(error => {
             console.error('Error updating session info:', error);
-            // Log the response text if possible
-            error.response && error.response.text().then(text => console.error('Response text:', text));
         });
 
         return sessionInfo;
