@@ -1,4 +1,4 @@
-(function() {
+(async function() {
     // Create open button
     const openButton = document.createElement('button');
     openButton.innerText = 'Chat with us';
@@ -35,43 +35,52 @@
         return sessionStorage.getItem(key);
     }
 
+    // Function to get CSRF token
+    function getCSRFToken() {
+        return fetch('https://epona.eqbay.co/welcome', {
+            method: 'GET',
+            credentials: 'include'
+        })
+        .then(response => response.json())
+        .then(data => data.csrf_token);
+    }
+
     // Function to send session info to chat bot
-    function sendSessionInfo() {
+    async function sendSessionInfo() {
         const sessionInfo = {
             ajs_anonymous_id: getCookie('ajs_anonymous_id'),
             first_session: getCookie('first_session'),
             _pmw_session_data_cart: getSessionStorage('_pmw_session_data_cart'),
             klaviyoPagesVisitCount: getSessionStorage('klaviyoPagesVisitCount')
         };
-
-        // Send session info to the server
-        fetch('https://epona.eqbay.co/update_session_info', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(sessionInfo),
-            credentials: 'include'  // Include cookies in the request
-        })
-        .then(response => {
+    
+        try {
+            const csrfToken = await getCSRFToken();
+    
+            const response = await fetch('https://epona.eqbay.co/update_session_info', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify(sessionInfo),
+                credentials: 'include'
+            });
+    
             console.log('Response status:', response.status);
             console.log('Response headers:', response.headers);
-            return response.text().then(text => {
-                console.log('Response text:', text);
-                try {
-                    return JSON.parse(text);
-                } catch (error) {
-                    console.error('Error parsing JSON:', error);
-                    throw new Error('Invalid JSON response');
-                }
-            });
-        })
-        .then(data => console.log('Session info updated:', data))
-        .catch(error => {
+    
+            const text = await response.text();
+            console.log('Response text:', text);
+    
+            const data = JSON.parse(text);
+            console.log('Session info updated:', data);
+    
+            return sessionInfo;
+        } catch (error) {
             console.error('Error updating session info:', error);
-        });
-
-        return sessionInfo;
+            return sessionInfo;
+        }
     }
 
     // Create iframe for the chat widget
@@ -79,7 +88,7 @@
     iframe.id = 'chat-widget-iframe';
     
     // Get the session info
-    const sessionInfo = sendSessionInfo();
+    const sessionInfo = await sendSessionInfo();
     
     // Append the ajs_anonymous_id to the iframe src as a query parameter
     iframe.src = `https://epona.eqbay.co/chat_widget?anonymous_id=${encodeURIComponent(sessionInfo.ajs_anonymous_id)}`;
