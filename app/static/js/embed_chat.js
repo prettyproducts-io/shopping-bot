@@ -2,7 +2,8 @@
     // Create open button
     const openButton = document.createElement('button');
     openButton.innerText = 'Chat with Epona';
-    openButton.className = 'open-button';
+    openButton.id = 'epona-chat-open-button';
+    openButton.className = 'epona-chat-open-button';
     openButton.onclick = toggleChatWidget;
  
     document.body.appendChild(openButton);
@@ -116,7 +117,8 @@
     // Function to toggle chat widget visibility
     function toggleChatWidget() {
         const iframe = document.getElementById('chat-widget-iframe');
-        if (iframe) {
+        const openButton = document.getElementById('epona-chat-open-button');
+        if (iframe && openButton) {
             if (iframe.style.display === 'none') {
                 iframe.style.display = 'block';
                 openButton.style.display = 'none';

@@ -49,10 +49,11 @@ body {
   }
 }
 
-body > .open-button {
+#epona-chat-open-button {
   position: fixed !important;
   bottom: 30px !important;
   right: 30px !important;
+  z-index: 99999 !important;
   background-color: #3b5998;
   color: white;
   padding: 16px 20px;
@@ -61,11 +62,27 @@ body > .open-button {
   opacity: 0.8;
   width: 140px;
   border-radius: 25px;
-  z-index: 9999 !important;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transition: opacity 0.3s ease;
 }
 
-.open-button:hover {
+#epona-chat-open-button:hover {
   opacity: 1;
+}
+
+body #chat-widget-iframe {
+  position: fixed !important;
+  bottom: 30px !important;
+  right: 30px !important;
+  z-index: 100000 !important;
+  border: none !important;
+  width: 350px !important;
+  height: 450px !important;
+  box-shadow: 0 5px 40px rgba(0,0,0,0.16) !important;
 }
 
 .chat-header {
