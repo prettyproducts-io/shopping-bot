@@ -148,62 +148,62 @@ body {
 
 
 #epona-chat-open-button {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background-color: #FF6F61;
-  color: white;
-  padding: 12px 20px;
-  border: none;
-  cursor: pointer;
-  border-radius: 25px;
-  z-index: 9999;
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  background-color: #FF6F61 !important;
+  color: white !important;
+  padding: 12px 20px !important;
+  border: none !important;
+  cursor: pointer !important;
+  border-radius: 25px !important;
+  z-index: 9999 !important;
   font-family: 'Public Sans', sans-serif;
   font-weight: 700;
   font-size: 20px;
-  line-height: 1;
-  text-align: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-width: 140px; /* Adjust as needed */
+  line-height: 1 !important;
+  text-align: center !important;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+  transition: all 0.3s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  min-width: 140px !important; /* Adjust as needed */
 }
 
 #epona-chat-open-button .button-text {
-  margin-right: 10px;
-  transition: opacity 0.3s ease;
+  margin-right: 10px !important;
+  transition: opacity 0.3s ease !important;
 }
 
 #epona-chat-open-button .arrow-icon {
-  width: 0;
-  height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 5px solid white;
-  transition: transform 0.3s ease;
+  width: 0 !important;
+  height: 0 !important;
+  border-left: 5px solid transparent !important;
+  border-right: 5px solid transparent !important;
+  border-top: 5px solid white !important;
+  transition: transform 0.3s ease !important;
 }
 
 #epona-chat-open-button.open {
-  padding: 12px;
-  min-width: unset;
-  width: 40px; /* Adjust size as needed */
-  height: 40px; /* Adjust size as needed */
-  border-radius: 50%;
-  justify-content: center;
+  padding: 12px !important;
+  min-width: unset !important;
+  width: 40px !important; /* Adjust size as needed */
+  height: 40px !important; /* Adjust size as needed */
+  border-radius: 50% !important;
+  justify-content: center !important;
 }
 
 #epona-chat-open-button.open .arrow-icon {
-  transform: rotate(180deg);
+  transform: rotate(180deg) !important;
 }
 
 #epona-chat-open-button.open .button-text {
-  display: none;
+  display: none !important;
 }
 
 #epona-chat-open-button:hover {
-  background-color: #ff8277;
+  background-color: #ff8277 !important;
 }
 
 #chat-widget-iframe {
