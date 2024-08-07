@@ -133,6 +133,12 @@ body {
   align-self: flex-start;
   display: flex;
   align-items: flex-start;
+  max-width: 75%;
+}
+
+/* Ensure messages don't overflow */
+.message.assistant-message {
+  max-width: 75%;
 }
 
 .assistant-message::before {
@@ -236,12 +242,6 @@ button:hover {
   margin-left: auto;
 }
 
-.assistant-message {
-  background-color: #3b5998;
-  color: white;
-  align-self: flex-start;
-}
-
 .product-list {
   margin-top: 10px;
 }
@@ -337,11 +337,3 @@ button:hover {
   margin-bottom: 5px;
 }
 
-.message.assistant-message {
-  max-width: 75%;
-}
-
-/* Ensure messages don't overflow */
-.message.assistant-message {
-  max-width: 75%;
-}
