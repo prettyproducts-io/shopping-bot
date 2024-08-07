@@ -3,12 +3,17 @@ from threading import Lock
 from .redis_config import redis_connection
 from langchain_core.messages import HumanMessage, AIMessage
 from openai import OpenAI
+from dotenv import load_dotenv
+import os
 
 # Load config
 with open('config.json', 'r') as f:
     config = json.load(f)
 
-client = OpenAI(api_key=config['openai_api_key'])
+# Load environment variables
+load_dotenv()
+
+client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 def get_session_memory(session_id):
     memory = redis_connection.get(f"memory:{session_id}")

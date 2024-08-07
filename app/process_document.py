@@ -23,9 +23,12 @@ def load_config():
 # Load the config
 config = load_config()
 
+# Load environment variables
+load_dotenv()
+
 # Use the config values
 document_path = config['document_path']
-openai_api_key = config['openai_api_key']
+openai_api_key = os.getenv('OPENAI_API_KEY')
 embedding_model_name = config['embedding_model_name']
 openai_model_name = config['openai_model_name']
 model_temperature = float(config['model_temperature'])
@@ -33,7 +36,7 @@ config['webhook_url'] = "https://www.eqbay.co/wp-json/custom/v1/product-info"
 
 # Initialize OpenAI client
 try:
-    client = OpenAI(api_key=openai_api_key)
+    client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 except Exception as e:
     logging.error(f"Failed to initialize OpenAI client: {e}")
     raise

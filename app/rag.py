@@ -4,16 +4,21 @@ import json
 from langchain_core.messages import HumanMessage
 import time
 from openai import OpenAI
+from dotenv import load_dotenv
+import os
 
 # Load config
 with open('config.json', 'r') as f:
     config = json.load(f)
 
+# Load environment variables
+load_dotenv()
+
 PRE_SHARED_KEY = config['pre_shared_key']
 WEBHOOK_URL = config['webhook_url']
 
 # Initialize OpenAI client
-client = OpenAI(api_key=config['openai_api_key'])
+client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 # Initialize these as None
 agent = None
