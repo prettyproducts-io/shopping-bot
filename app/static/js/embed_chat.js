@@ -58,12 +58,13 @@
     
         try {
             const csrfToken = await getCSRFToken();
+            console.log('CSRF Token:', csrfToken);
+    
             const response = await fetch('https://epona.eqbay.co/update_session_info', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Origin': 'https://www.eqbay.co',
-                    'X-CSRFToken': csrfToken
+                    'X-CSRFToken': csrfToken,
                 },
                 body: JSON.stringify(sessionInfo),
                 credentials: 'include'
