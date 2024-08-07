@@ -82,10 +82,13 @@ body {
 }
 
 .chatbox {
+  display:flex;
+  flex-direction: column;
   flex-grow: 1;
   overflow-y: auto;
   padding: 15px;
   background-color: #FFFFFF;
+  -webkit-overflow-scrolling: touch;
 }
 
 #chat-form {
@@ -109,6 +112,24 @@ body {
   color: #FF6F61;
   font-size: 24px;
   cursor: pointer;
+}
+
+.message-container {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.assistant-container {
+  flex-direction: row;
+}
+
+.assistant-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin-right: 10px;
+  flex-shrink: 0;
 }
 
 .message {
@@ -230,16 +251,10 @@ button:hover {
 
 .message {
   max-width: 80%;
-  margin: 10px 0;
-  padding: 10px;
+  padding: 10px 15px;
   border-radius: 18px;
-}
-
-.user-message {
-  background-color: #e6e6e6;
-  color: #333;
-  align-self: flex-end;
-  margin-left: auto;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 .product-list {

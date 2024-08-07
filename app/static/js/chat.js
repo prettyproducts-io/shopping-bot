@@ -12,6 +12,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Enable touch scrolling for mobile devices
+    chatbox.style.WebkitOverflowScrolling = 'touch';
+
+    // Prevent body scrolling when touching the chatbox on mobile
+    chatbox.addEventListener('touchmove', function(e) {
+        e.stopPropagation();
+    }, false);
+
     function formatMarkdown(text) {
         return text
             .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')   // Bold text
@@ -28,7 +36,27 @@ document.addEventListener('DOMContentLoaded', function() {
                   .replace(/'/g, '&#039;');
     }
 
+    function scrollToBottom() {
+        setTimeout(() => {
+            chatbox.scrollTo({
+                top: chatbox.scrollHeight,
+                behavior: 'smooth'
+            });
+        }, 100); // 100ms delay
+    }
+
     function appendMessage(sender, message) {
+        const messageContainer = document.createElement('div');
+        messageContainer.className = `message-container ${sender}-container`;
+
+        if (sender === 'assistant') {
+            const iconImg = document.createElement('img');
+            iconImg.src = '/static/assets/epona-logo.png';
+            iconImg.className = 'assistant-icon';
+            iconImg.alt = 'Epona Logo';
+            messageContainer.appendChild(iconImg);
+        }
+    
         const messageElement = document.createElement('div');
         messageElement.className = `message ${sender}-message`;
 
@@ -72,6 +100,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         descriptionElement.className = `message ${sender}-message product-description`;
                         descriptionElement.innerHTML = descriptionHTML;
                         chatbox.appendChild(descriptionElement);
+
+                        // Scroll after each product is added
+                        scrollToBottom();
                     });
                 }
             } else {
@@ -86,7 +117,12 @@ document.addEventListener('DOMContentLoaded', function() {
             chatbox.appendChild(messageElement);
         }
 
+        messageContainer.appendChild(messageElement);
+        chatbox.appendChild(messageContainer);
         chatbox.scrollTop = chatbox.scrollHeight;
+
+        // Scroll to the bottom after adding the message
+        scrollToBottom();
     }
 
     function formatProduct(product) {
