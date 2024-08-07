@@ -19,27 +19,27 @@ body {
   flex-shrink: 0;
 }
 
+/* Ensure the chat widget fills the iframe */
 #chat-widget-container {
   position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 350px;
-  height: 450px;
-  background-color: #fff;
-  border-radius: 20px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  z-index: 10000;
-  overflow: hidden;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
 }
 
 @media (max-width: 768px) {
   #chat-widget-container {
-    width: 90%;
-    height: 80vh;
-    bottom: 10px;
-    right: 5%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
   }
 
   #epona-chat-open-button {
@@ -60,13 +60,16 @@ body {
 .chat-header h2 {
   margin: 0;
   font-size: 18px;
-  margin-left: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .chat-header img {
   width: 30px;
   height: 30px;
   border-radius: 50%;
+  margin-right: 10px;
 }
 
 .bot-label {
@@ -75,14 +78,14 @@ body {
   padding: 2px 6px;
   border-radius: 10px;
   font-size: 12px;
-  margin-left: 5px;
+  margin-top: 5px;
 }
 
 .chatbox {
   flex-grow: 1;
   overflow-y: auto;
   padding: 15px;
-  background-color: #F5F5F5;
+  background-color: #FFFFFF;
 }
 
 #chat-form {
@@ -97,6 +100,7 @@ body {
   border: none;
   outline: none;
   font-size: 14px;
+  text-align: center;
 }
 
 #chat-form button {
@@ -117,17 +121,16 @@ body {
 }
 
 .user-message {
-  background-color: #34495E;
+  background-color: #25495F;
   color: white;
   align-self: flex-end;
   margin-left: auto;
 }
 
 .assistant-message {
-  background-color: white;
-  color: #333;
+  background-color: #F2F2F2;
+  color: black;
   align-self: flex-start;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
   display: flex;
   align-items: flex-start;
 }
@@ -150,14 +153,11 @@ body {
   margin-left: 34px;
 }
 
+/* Remove back button styles */
 .back-button {
-  background: transparent;
-  border: none;
-  color: white;
-  font-size: 20px;
-  margin-right: 10px;
-  cursor: pointer;
+  display: none;
 }
+
 
 #epona-chat-open-button {
   position: fixed;
