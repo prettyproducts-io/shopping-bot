@@ -1,5 +1,5 @@
 import logging
-from .process_document import extract_products, setup_conversational_agent, get_product_info, load_embeddings
+from .process_document import extract_products, setup_conversational_agent, get_product_info
 import json
 from langchain_core.messages import HumanMessage
 import time
@@ -127,4 +127,3 @@ def chat_with_bot(question, session_id):
                 "products": []
             }
         time.sleep(0.5)
-    
