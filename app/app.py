@@ -48,8 +48,11 @@ try:
 
     print("Setting up CORS")
     CORS(app, resources={
-        r"/*": {"origins": ["https://epona.eqbay.co", "https://*.eqbay.co", "http://localhost:*", "http://127.0.0.1:*"]},
-        r"/update_session_info": {"origins": "*", "methods": ["POST"]}
+        r"/*": {
+            "origins": ["https://epona.eqbay.co", "https://*.eqbay.co", "http://localhost:*", "http://127.0.0.1:*"],
+            "methods": ["GET", "POST", "OPTIONS"],
+            "allow_headers": ["Content-Type", "X-CSRFToken"]
+        }
     })
     print("CORS setup complete")
 
@@ -376,16 +379,9 @@ try:
             app.logger.error(f"Error clearing session: {str(e)}")
             return "Error clearing session", 500
         
-    @app.route('/test', methods=['POST'])
-    def test_endpoint():
-        try:
-            app.logger.debug("Entered the /test endpoint")
-            data = request.json or {}
-            app.logger.debug(f"Test endpoint data: {data}")
-            return jsonify({"message": "Test endpoint reached", "data": data}), 200
-        except Exception as e:
-            app.logger.error(f"Error in /test endpoint: {str(e)}")
-            return jsonify({"error": "An unexpected error occurred"}), 500
+    @app.route('/test_json', methods=['GET', 'POST'])
+    def test_json():
+        return jsonify({"status": "success", "message": "Test JSON response"})
         
     @app.route('/chat_widget')
     def chat_widget():
@@ -426,6 +422,7 @@ try:
         return jsonify({"status": "success"})
         
     @app.route('/update_session_info', methods=['POST'])
+    @csrf.exempt  # Temporarily exempt this route from CSRF protection for testing
     def update_session_info():
         try:
             app.logger.debug(f"Received request to /update_session_info: {request.data}")

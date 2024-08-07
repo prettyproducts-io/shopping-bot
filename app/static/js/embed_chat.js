@@ -54,19 +54,22 @@
             credentials: 'include'  // Include cookies in the request
         })
         .then(response => {
-            if (!response.ok) {
-                return response.text().then(text => {
-                    console.error('Server response:', text);
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                });
-            }
-            return response.json();
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            return response.text().then(text => {
+                console.log('Response text:', text);
+                try {
+                    return JSON.parse(text);
+                } catch (error) {
+                    console.error('Error parsing JSON:', error);
+                    throw new Error('Invalid JSON response');
+                }
+            });
         })
         .then(data => console.log('Session info updated:', data))
         .catch(error => {
             console.error('Error updating session info:', error);
         });
-
         return sessionInfo;
     }
 
