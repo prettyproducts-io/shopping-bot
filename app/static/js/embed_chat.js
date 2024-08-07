@@ -91,6 +91,9 @@
     iframe.style.border = 'none';
     iframe.style.zIndex = '10001';
     iframe.style.display = 'none';
+    iframe.style.borderRadius = '20px';
+    iframe.style.overflow = 'hidden';
+    iframe.style.boxShadow = '0 5px 20px rgba(0,0,0,0.1)';
 
     function tryTrackEvent(retries = 3) {
         if (window.analytics && typeof window.analytics.track === 'function') {
