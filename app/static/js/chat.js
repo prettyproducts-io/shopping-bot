@@ -15,6 +15,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // Enable touch scrolling for mobile devices
     chatbox.style.WebkitOverflowScrolling = 'touch';
 
+    // Make chatbox focusable
+    chatbox.tabIndex = 0;
+
+    // Focus chatbox when clicked
+    chatbox.addEventListener('click', function() {
+        this.focus();
+    });
+
+    // Prevent default space bar behavior (page scroll) when chatbox is focused
+    chatbox.addEventListener('keydown', function(e) {
+        if (e.keyCode === 32 && e.target === chatbox) {
+            e.preventDefault();
+        }
+    });
+
     // Prevent body scrolling when touching the chatbox on mobile
     chatbox.addEventListener('touchmove', function(e) {
         e.stopPropagation();
@@ -59,6 +74,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
         const messageElement = document.createElement('div');
         messageElement.className = `message ${sender}-message`;
+
+        // Remove any existing logo from the message content
+        message = message.replace(/<img[^>]*>/g, '');
 
         try {
             let content = '';
