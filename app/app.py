@@ -445,22 +445,20 @@ try:
         
         if request.method == 'OPTIONS':
             response = make_response()
-            response.headers.add('Access-Control-Allow-Origin', 'https://www.eqbay.co')
-            response.headers.add('Access-Control-Allow-Headers', 'Content-Type,X-CSRFToken')
+            response.headers.add('Access-Control-Allow-Origin', request.headers.get('Origin', 'https://www.eqbay.co'))
+            response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
             response.headers.add('Access-Control-Allow-Methods', 'POST,OPTIONS')
             response.headers.add('Access-Control-Allow-Credentials', 'true')
             return response
 
         try:
             origin = request.headers.get('Origin')
-            referer = request.headers.get('Referer')
             app.logger.debug(f"Origin: {origin}")
-            app.logger.debug(f"Referer: {referer}")
             
             allowed_origins = ['https://www.eqbay.co', 'https://eqbay.co']
-            if origin not in allowed_origins or not any(referer.startswith(ao) for ao in allowed_origins):
-                app.logger.error(f"Invalid origin or referer: Origin={origin}, Referer={referer}")
-                return jsonify({"status": "error", "message": "Invalid origin or referer"}), 400
+            if not origin or origin not in allowed_origins:
+                app.logger.error(f"Invalid or missing origin: Origin={origin}")
+                return jsonify({"status": "error", "message": "Invalid or missing origin"}), 400
 
             # Parse the JSON data from the request body
             session_info = request.json
@@ -469,14 +467,17 @@ try:
             if not session_info:
                 return jsonify({"status": "error", "message": "No session info provided"}), 400
 
+            # Store session info (you might want to adjust this based on your needs)
             session['client_session_info'] = session_info
 
-            analytics.identify(session.sid, {
-                'anonymous_id': session_info.get('ajs_anonymous_id'),
-                'first_session': session_info.get('first_session'),
-                'cart_data': session_info.get('_pmw_session_data_cart'),
-                'pages_visit_count': session_info.get('klaviyoPagesVisitCount')
-            })
+            # Identify user (adjust this based on your analytics setup)
+            if hasattr(app, 'analytics'):
+                app.analytics.identify(session.get('sid', 'unknown'), {
+                    'anonymous_id': session_info.get('ajs_anonymous_id'),
+                    'first_session': session_info.get('first_session'),
+                    'cart_data': session_info.get('_pmw_session_data_cart'),
+                    'pages_visit_count': session_info.get('klaviyoPagesVisitCount')
+                })
 
             response = jsonify({"status": "success"})
             response.headers.add('Access-Control-Allow-Origin', origin)

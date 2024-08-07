@@ -61,6 +61,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Origin': 'https://www.eqbay.co'
                 },
                 body: JSON.stringify(sessionInfo),
                 credentials: 'include'
@@ -82,7 +83,7 @@
             return null;
         }
     }
-
+    
     // Create iframe for the chat widget
     const iframe = document.createElement('iframe');
     iframe.id = 'chat-widget-iframe';
