@@ -3,13 +3,8 @@
     const openButton = document.createElement('button');
     openButton.innerText = 'Chat with Epona';
     openButton.className = 'open-button';
-    openButton.onclick = () => {
-        const iframe = document.getElementById('chat-widget-iframe');
-        if (iframe) {
-            iframe.style.display = iframe.style.display === 'none' ? 'block' : 'none';
-        }
-    };
-
+    openButton.onclick = toggleChatWidget;
+ 
     document.body.appendChild(openButton);
 
     // Function to get cookie value
@@ -117,4 +112,27 @@
     };
 
     document.body.appendChild(iframe);
+
+    // Function to toggle chat widget visibility
+    function toggleChatWidget() {
+        const iframe = document.getElementById('chat-widget-iframe');
+        if (iframe) {
+            if (iframe.style.display === 'none') {
+                iframe.style.display = 'block';
+                openButton.style.display = 'none';
+            } else {
+                iframe.style.display = 'none';
+                openButton.style.display = 'block';
+            }
+        }
+    }
+
+    // Listen for messages from the iframe
+    window.addEventListener('message', function(event) {
+        if (event.origin !== 'https://epona.eqbay.co') return;
+        
+        if (event.data === 'closeChatWidget') {
+            toggleChatWidget();
+        }
+    }, false);
 })();

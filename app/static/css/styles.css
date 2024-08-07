@@ -49,10 +49,10 @@ body {
   }
 }
 
-.open-button {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
+body > .open-button {
+  position: fixed !important;
+  bottom: 30px !important;
+  right: 30px !important;
   background-color: #3b5998;
   color: white;
   padding: 16px 20px;
@@ -61,7 +61,7 @@ body {
   opacity: 0.8;
   width: 140px;
   border-radius: 25px;
-  z-index: 9999;
+  z-index: 9999 !important;
 }
 
 .open-button:hover {

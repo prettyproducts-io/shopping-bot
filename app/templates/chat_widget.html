@@ -18,7 +18,7 @@
             {{ form.hidden_tag() }}
             {{ form.question(id='chat-input', placeholder='Type your message...', rows='1', required=True) }}
             <button type="submit">Send</button>
-            <button type="button" class="cancel" onclick="closeChat()">Close</button>
+            <button onclick="window.parent.postMessage('closeChatWidget', '*')">Close</button>
         </form>
     </div>
     <script src="/static/js/chat.js"></script>
