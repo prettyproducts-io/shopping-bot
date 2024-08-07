@@ -36,13 +36,14 @@
     }
 
     // Function to get CSRF token
-    function getCSRFToken() {
-        return fetch('https://epona.eqbay.co/welcome', {
+    async function getCSRFToken() {
+        const response = await fetch('https://epona.eqbay.co/welcome', {
             method: 'GET',
             credentials: 'include'
-        })
-        .then(response => response.json())
-        .then(data => data.csrf_token);
+        });
+        const data = await response.json();
+        console.log('CSRF Token:', data.csrf_token); // Log the token
+        return data.csrf_token;
     }
 
     // Function to send session info to chat bot
@@ -53,9 +54,11 @@
             _pmw_session_data_cart: getSessionStorage('_pmw_session_data_cart'),
             klaviyoPagesVisitCount: getSessionStorage('klaviyoPagesVisitCount')
         };
+        console.log('Session Info:', sessionInfo);
     
         try {
             const csrfToken = await getCSRFToken();
+            console.log('CSRF Token:', csrfToken);
     
             const response = await fetch('https://epona.eqbay.co/update_session_info', {
                 method: 'POST',
@@ -74,13 +77,10 @@
             const text = await response.text();
             console.log('Response text:', text);
     
-            const data = JSON.parse(text);
-            console.log('Session info updated:', data);
-    
-            return sessionInfo;
+            return JSON.parse(text);
         } catch (error) {
             console.error('Error updating session info:', error);
-            return sessionInfo;
+            return null;
         }
     }
 

@@ -49,7 +49,7 @@ try:
     print("Setting up CORS")
     CORS(app, resources={
         r"/*": {
-            "origins": ["https://epona.eqbay.co", "https://www.eqbay.co", "http://localhost:*", "http://127.0.0.1:*"],
+            "origins": ["https://www.eqbay.co", "https://epona.eqbay.co"],
             "methods": ["GET", "POST", "OPTIONS"],
             "allow_headers": ["Content-Type", "X-CSRFToken", "Referer"],
             "supports_credentials": True
@@ -424,6 +424,10 @@ try:
         
     @app.route('/update_session_info', methods=['POST', 'OPTIONS'])
     def update_session_info():
+        app.logger.debug(f"Method: {request.method}")
+        app.logger.debug(f"Headers: {request.headers}")
+        app.logger.debug(f"Data: {request.data}")
+        
         if request.method == 'OPTIONS':
             response = make_response()
             response.headers["Access-Control-Allow-Origin"] = request.headers.get("Origin")
@@ -433,10 +437,8 @@ try:
             return response
 
         try:
-            app.logger.debug(f"Received request to /update_session_info: {request.data}")
-            app.logger.debug(f"Referrer: {request.headers.get('Referer')}")
-            app.logger.debug(f"Origin: {request.headers.get('Origin')}")
             session_info = request.json
+            app.logger.debug(f"Parsed JSON: {session_info}")
             if not session_info:
                 app.logger.error("No JSON data received in /update_session_info")
                 return jsonify({"status": "error", "message": "No data provided"}), 400
