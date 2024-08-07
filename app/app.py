@@ -48,10 +48,10 @@ try:
 
     print("Setting up CORS")
     CORS(app, resources={
-        r"/*": {
-            "origins": ["https://www.eqbay.co", "https://epona.eqbay.co"],
-            "methods": ["GET", "POST", "OPTIONS"],
-            "allow_headers": ["Content-Type", "X-CSRFToken", "Referer"],
+        r"/update_session_info": {
+            "origins": ["https://www.eqbay.co", "http://localhost:*", "http://127.0.0.1:*"],
+            "methods": ["POST", "OPTIONS"],
+            "allow_headers": ["Content-Type", "X-CSRFToken"],
             "supports_credentials": True
         }
     })
@@ -430,20 +430,20 @@ try:
         
         if request.method == 'OPTIONS':
             response = make_response()
-            response.headers["Access-Control-Allow-Origin"] = request.headers.get("Origin")
-            response.headers["Access-Control-Allow-Credentials"] = "true"
-            response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
-            response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken, Referer"
+            response.headers.add('Access-Control-Allow-Origin', 'https://www.eqbay.co')
+            response.headers.add('Access-Control-Allow-Headers', 'Content-Type,X-CSRFToken')
+            response.headers.add('Access-Control-Allow-Methods', 'POST,OPTIONS')
+            response.headers.add('Access-Control-Allow-Credentials', 'true')
             return response
 
         try:
-            # Check if the referrer is allowed
-            referrer = request.headers.get('Referer')
-            app.logger.debug(f"Referrer: {referrer}")
-            allowed_referrers = ['https://www.eqbay.co/', 'https://epona.eqbay.co/']
-            if not referrer or not any(referrer.startswith(allowed_ref) for allowed_ref in allowed_referrers):
-                app.logger.error(f"Invalid referrer: {referrer}")
-                return jsonify({"status": "error", "message": "Invalid referrer"}), 400
+            # Check if the origin is allowed instead of referrer
+            origin = request.headers.get('Origin')
+            app.logger.debug(f"Origin: {origin}")
+            allowed_origins = ['https://www.eqbay.co', 'https://epona.eqbay.co']
+            if not origin or origin not in allowed_origins:
+                app.logger.error(f"Invalid origin: {origin}")
+                return jsonify({"status": "error", "message": "Invalid origin"}), 400
 
             session_info = request.json
             app.logger.debug(f"Parsed JSON: {session_info}")
@@ -463,8 +463,8 @@ try:
             })
 
             response = jsonify({"status": "success"})
-            response.headers["Access-Control-Allow-Origin"] = request.headers.get("Origin")
-            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers.add('Access-Control-Allow-Origin', 'https://www.eqbay.co')
+            response.headers.add('Access-Control-Allow-Credentials', 'true')
             return response
         except Exception as e:
             app.logger.error(f"Error in /update_session_info: {str(e)}")
