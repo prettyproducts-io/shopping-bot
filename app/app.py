@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify, render_template, send_from_directory,
 from flask_session import Session
 import segment.analytics as analytics
 from flask_wtf import FlaskForm, CSRFProtect
-from flask_wtf.csrf import generate_csrf, validate_csrf
+from flask_wtf.csrf import generate_csrf, validate_csrf, CSRFProtect, csrf_exempt
 from flask_basicauth import BasicAuth
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 from flask_limiter import Limiter
@@ -437,6 +437,7 @@ try:
         return jsonify({"status": "success"})
         
     @app.route('/update_session_info', methods=['POST', 'OPTIONS'])
+    @csrf_exempt
     def update_session_info():
         app.logger.debug(f"Method: {request.method}")
         app.logger.debug(f"Headers: {request.headers}")
