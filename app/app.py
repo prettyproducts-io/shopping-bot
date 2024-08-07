@@ -1,7 +1,7 @@
 print("Starting app initialization...")
 import logging
 from openai import OpenAI, OpenAIError
-from flask import Flask, request, jsonify, render_template, send_from_directory, session, Response, stream_with_context, current_app
+from flask import Flask, request, jsonify, render_template, send_from_directory, session, Response, stream_with_context, make_response
 from flask_session import Session
 import segment.analytics as analytics
 from flask_wtf import FlaskForm, CSRFProtect
@@ -421,8 +421,16 @@ try:
         session.pop('chat_session_started', None)
         return jsonify({"status": "success"})
         
-    @app.route('/update_session_info', methods=['POST'])
+    @app.route('/update_session_info', methods=['POST', 'OPTIONS'])
     def update_session_info():
+        if request.method == 'OPTIONS':
+            response = make_response()
+            response.headers["Access-Control-Allow-Origin"] = request.headers.get("Origin")
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken"
+            return response
+
         try:
             app.logger.debug(f"Received request to /update_session_info: {request.data}")
             session_info = request.json
@@ -441,10 +449,16 @@ try:
                 'pages_visit_count': session_info.get('klaviyoPagesVisitCount')
             })
 
-            return jsonify({"status": "success"})
+            response = jsonify({"status": "success"})
+            response.headers["Access-Control-Allow-Origin"] = request.headers.get("Origin")
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            return response
         except Exception as e:
             app.logger.error(f"Error in /update_session_info: {str(e)}")
-            return jsonify({"status": "error", "message": str(e)}), 500
+            response = jsonify({"status": "error", "message": str(e)})
+            response.headers["Access-Control-Allow-Origin"] = request.headers.get("Origin")
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            return response
 
 except Exception as e:
     print(f"An error occurred during initialization: {str(e)}")
