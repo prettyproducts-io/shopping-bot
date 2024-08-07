@@ -1,26 +1,25 @@
-flask-basicauth>=0.2.0; python_version >= '3.7' and python_version < '4'
-flask-cors>=4.0.1; python_version >= '3.7' and python_version < '4'
-flask-jwt-extended>=4.6.0; python_version >= '3.7' and python_version < '4'
-flask-limiter>=3.7.0; python_version >= '3.8'
-flask-wtf>=1.2.1; python_version >= '3.8'
-gunicorn>=22.0.0; python_version >= '3.7'
-langchain>=0.2.6; python_version < '4.0' and python_full_version >= '3.8.1'
-langchain-chroma>=0.1.2; python_version < '4' and python_full_version >= '3.8.1'
-langchain-community>=0.2.6; python_version < '4.0' and python_full_version >= '3.8.1'
-langchain-openai>=0.1.14; python_version < '4.0' and python_full_version >= '3.8.1'
-langgraph>=0.1.5; python_version < '4.0' and python_full_version >= '3.9.0'
-openai>=1.35.10; python_full_version >= '3.7.1'
-pypdf2>=3.0.1; python_version >= '3.6'
-python-dotenv>=1.0.1; python_version >= '3.8'
-Flask-Session>=0.6.0; python_version >= '3.7' and python_version < '4'
-redis>=4.5.5; python_version >= '3.7' and python_version < '4'
-Flask-Mail; python_version >= '3.7' and python_version < '4'
-MarkupSafe; python_version >= '3.7' and python_version < '4'
-requests>=2.32.3; python_version >= '3.7' and python_version < '4'
-beautifulsoup4>=4.12.3; python_version >= '3.7' and python_version < '4'
-reportlab>=4.1.0; python_version >= '3.7' and python_version < '4'
-WTForms>=3.1.1; python_version >= '3.7' and python_version < '4'
-itsdangerous>=2.1.2; python_version >= '3.7' and python_version < '4'
-segment-analytics-python>=2.3.2; python_version >= '3.7' and python_version < '4'
-celery>=5.4.0; python_version >= '3.7' and python_version < '4'
-markdown>=3.6.0; python_version >= '3.7' and python_version < '4'
+flask>=2.0.0
+flask-basicauth>=0.2.0
+flask-cors>=4.0.0
+flask-jwt-extended>=4.0.0
+flask-limiter>=3.0.0
+flask-wtf>=1.0.0
+flask-session>=0.4.0
+gunicorn>=20.0.0
+python-dotenv>=0.19.0
+openai>=1.0.0
+langchain>=0.0.300
+langchain-openai>=0.0.2
+langchain-community>=0.0.2
+langchain-chroma>=0.0.2
+chromadb>=0.3.0
+redis>=4.0.0
+celery>=5.0.0
+segment-analytics-python>=2.2.0
+requests>=2.26.0
+pypdf2>=2.0.0
+reportlab>=3.6.0
+beautifulsoup4>=4.10.0
+markdown>=3.3.0
+itsdangerous>=2.0.0
+wtforms>=3.0.0

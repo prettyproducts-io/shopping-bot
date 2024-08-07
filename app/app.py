@@ -46,7 +46,7 @@ try:
     print("Flask app created")
 
     print("Setting up CORS")
-    CORS(app, resources={r"/*": {"origins": ["https://epona.eqbay.co", "http://localhost:*", "http://127.0.0.1:*"]}})
+    CORS(app, resources={r"/*": {"origins": ["https://epona.eqbay.co", "https://www.eqbay.co", "http://localhost:*", "http://127.0.0.1:*"]}})
     print("CORS setup complete")
 
     print("Loading Segment configuration")
@@ -183,18 +183,21 @@ try:
             thread_id = ensure_str(get_or_create_thread(session_id))
 
             try:
+                app.logger.debug(f"Thread ID: {thread_id}")
                 # Add the user's message to the thread
                 client.beta.threads.messages.create(
                     thread_id=thread_id,
                     role="user",
                     content=question
                 )
+                app.logger.debug("User message added to thread")
 
                 # Create a new run
                 run = client.beta.threads.runs.create(
                     thread_id=thread_id,
                     assistant_id="asst_RPpg13jrshEESBjAmIjKkpSD"
                 )
+                app.logger.debug(f"Run created with ID: {run.id}")
 
                 def generate():
                     start_time = time.time()
@@ -246,6 +249,7 @@ try:
                     else:
                         yield f"data: {json.dumps({'error': 'Maximum retries reached'})}\n\n"
 
+                app.logger.debug("Returning response stream")
                 return Response(stream_with_context(generate()), content_type='text/event-stream')
 
             except OpenAIError as e:
