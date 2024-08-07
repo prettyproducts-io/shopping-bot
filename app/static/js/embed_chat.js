@@ -60,7 +60,6 @@
             const csrfToken = await getCSRFToken();
             console.log('CSRF Token:', csrfToken);
     
-            // Use the direct URL to epona.eqbay.co
             const response = await fetch('https://epona.eqbay.co/update_session_info', {
                 method: 'POST',
                 headers: {

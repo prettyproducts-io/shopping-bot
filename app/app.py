@@ -49,8 +49,8 @@ try:
     print("Setting up CORS")
     CORS(app, resources={
         r"/*": {
-            "origins": ["https://www.eqbay.co", "http://localhost:*", "http://127.0.0.1:*"],
-            "methods": ["POST", "OPTIONS"],
+            "origins": ["https://www.eqbay.co", "https://eqbay.co", "http://localhost:*", "http://127.0.0.1:*"],
+            "methods": ["GET", "POST", "OPTIONS"],
             "allow_headers": ["Content-Type", "X-CSRFToken"],
             "supports_credentials": True
         }
@@ -456,12 +456,17 @@ try:
             app.logger.debug(f"Origin: {origin}")
             app.logger.debug(f"Referer: {referer}")
             
-            allowed_origin = 'https://www.eqbay.co'
-            if origin != allowed_origin or not referer.startswith(allowed_origin):
+            allowed_origins = ['https://www.eqbay.co', 'https://eqbay.co']
+            if origin not in allowed_origins or not any(referer.startswith(ao) for ao in allowed_origins):
                 app.logger.error(f"Invalid origin or referer: Origin={origin}, Referer={referer}")
                 return jsonify({"status": "error", "message": "Invalid origin or referer"}), 400
 
+            # Parse the JSON data from the request body
+            session_info = request.json
             app.logger.debug(f"Received session info: {session_info}")
+
+            if not session_info:
+                return jsonify({"status": "error", "message": "No session info provided"}), 400
 
             session['client_session_info'] = session_info
 
@@ -473,14 +478,14 @@ try:
             })
 
             response = jsonify({"status": "success"})
-            response.headers.add('Access-Control-Allow-Origin', 'https://www.eqbay.co')
+            response.headers.add('Access-Control-Allow-Origin', origin)
             response.headers.add('Access-Control-Allow-Credentials', 'true')
             return response
         
         except Exception as e:
             app.logger.error(f"Error in /update_session_info: {str(e)}")
             response = jsonify({"status": "error", "message": str(e)})
-            response.headers["Access-Control-Allow-Origin"] = 'https://www.eqbay.co'
+            response.headers["Access-Control-Allow-Origin"] = origin if origin else 'https://www.eqbay.co'
             response.headers["Access-Control-Allow-Credentials"] = "true"
             return response
 
