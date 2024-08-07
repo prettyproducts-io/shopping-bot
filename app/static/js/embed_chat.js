@@ -4,7 +4,7 @@
     openButton.innerText = 'Chat with Epona';
     openButton.id = 'epona-chat-open-button';
     openButton.className = 'epona-chat-open-button';
-    openButton.innerHTML = '<span class="epona-chat-open-button .button-text">Chat with Epona</span><i class="arrow-icon"></i>';
+    openButton.innerHTML = '<span class="button-text">Chat with Epona</span><i class="arrow-icon"></i>';
     openButton.onclick = toggleChatWidget;
  
     document.body.appendChild(openButton);
@@ -135,7 +135,7 @@
             }
         }
     }
-
+   
     // Listen for messages from the iframe
     window.addEventListener('message', function(event) {
         if (event.origin !== 'https://epona.eqbay.co') return;
