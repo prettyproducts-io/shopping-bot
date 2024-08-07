@@ -74,16 +74,17 @@
             console.log('Response text:', text);
     
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
             }
     
             return JSON.parse(text);
         } catch (error) {
             console.error('Error updating session info:', error);
+            console.error('Error details:', error.message);
             return null;
         }
     }
-    
+
     // Create iframe for the chat widget
     const iframe = document.createElement('iframe');
     iframe.id = 'chat-widget-iframe';

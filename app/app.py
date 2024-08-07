@@ -125,6 +125,8 @@ try:
     def log_request_info():
         app.logger.debug('Headers: %s', request.headers)
         app.logger.debug('Body: %s', request.get_data())
+        app.logger.debug('URL: %s', request.url)
+        app.logger.debug('Method: %s', request.method)
     def before_request():
         app.logger.debug(f"Session before request: {session.items()}")
         if 'sid' not in session:
@@ -467,7 +469,11 @@ try:
             if not session_info:
                 return jsonify({"status": "error", "message": "No session info provided"}), 400
 
-            # Store session info (you might want to adjust this based on your needs)
+            # Check if session info has already been stored
+            if 'client_session_info' in session and session['client_session_info'] == session_info:
+                return jsonify({"status": "success", "message": "Session info already up to date"}), 200
+
+            # Store session info
             session['client_session_info'] = session_info
 
             # Identify user (adjust this based on your analytics setup)
@@ -479,7 +485,7 @@ try:
                     'pages_visit_count': session_info.get('klaviyoPagesVisitCount')
                 })
 
-            response = jsonify({"status": "success"})
+            response = jsonify({"status": "success", "message": "Session info updated"})
             response.headers.add('Access-Control-Allow-Origin', origin)
             response.headers.add('Access-Control-Allow-Credentials', 'true')
             return response
