@@ -19,13 +19,12 @@ body {
   flex-shrink: 0;
 }
 
-/* Chat Widget Styles */
 #chat-widget-container {
   position: fixed;
   bottom: 30px;
   right: 30px;
-  width: 350px; /* Adjust to your preference */
-  height: 450px; /* Adjust to your preference */
+  width: 350px;
+  height: 450px;
   background-color: #fff;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -33,7 +32,6 @@ body {
   flex-direction: column;
   z-index: 10000;
   overflow: hidden;
-  /* Remove the 'display: none;' to make it visible by default */
 }
 
 @media (max-width: 768px) {
@@ -74,8 +72,6 @@ body {
   background-color: #3b5998;
   color: white;
   padding: 10px;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
   text-align: center;
 }
 
@@ -86,7 +82,6 @@ body {
 
 .chatbox {
   flex-grow: 1;
-  width: 100%;
   overflow-y: auto;
   padding: 10px;
 }
@@ -94,6 +89,7 @@ body {
 #chat-form {
   display: flex;
   border-top: 1px solid #e6e6e6;
+  padding: 10px;
 }
 
 #chat-input {
@@ -102,7 +98,15 @@ body {
   border-radius: 18px;
   padding: 8px 12px;
   margin-right: 10px;
-  resize: none;
+}
+
+#chat-form button {
+  background-color: #3b5998;
+  color: white;
+  border: none;
+  border-radius: 18px;
+  padding: 8px 16px;
+  cursor: pointer;
 }
 
 button {
@@ -124,21 +128,10 @@ button:hover {
 }
 
 .message {
-  max-width: 600px;
+  max-width: 80%;
   margin: 10px 0;
   padding: 10px;
-  background-color: #f1f1f1;
-  border-radius: 15px;
-  line-height: 1.5;
-  word-wrap: break-word;
-}
-
-.message p {
-  margin: 10px 0;
-}
-
-.message br {
-  line-height: 1.5;  /* Adjust line height for readability */
+  border-radius: 18px;
 }
 
 .user-message {
@@ -146,14 +139,12 @@ button:hover {
   color: #333;
   align-self: flex-end;
   margin-left: auto;
-  max-width: 75%;
 }
 
 .assistant-message {
   background-color: #3b5998;
   color: white;
   align-self: flex-start;
-  max-width: 75%;
 }
 
 .product-list {

@@ -4,11 +4,21 @@
     openButton.innerText = 'Chat with us';
     openButton.className = 'open-button';
     openButton.onclick = () => {
-        const iframe = document.getElementById('chat-widget-iframe');
-        if (iframe) {
-            iframe.style.display = 'block';
-        }
-        openButton.style.display = 'none';
+        const chatWidget = document.createElement('div');
+        chatWidget.id = 'chat-widget-container';
+        chatWidget.innerHTML = `
+            <div class="chat-header">
+                <h2>Epona</h2>
+            </div>
+            <div id="chatbox" class="chatbox"></div>
+            <form id="chat-form">
+                <input type="text" id="chat-input" placeholder="Enter your message" required>
+                <button type="submit">Send</button>
+            </form>
+        `;
+        chatWidget.style.display = 'none';
+        
+        document.body.appendChild(chatWidget);
     };
 
     document.body.appendChild(openButton);
