@@ -77,6 +77,7 @@ try:
     app.config['BASIC_AUTH_PASSWORD'] = os.getenv('BASIC_AUTH_PASSWORD')
     app.config['CELERY_BROKER_URL'] = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     app.config['CELERY_RESULT_BACKEND'] = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    app.config['ASSISTANT_ID'] = os.getenv('ASSISTANT_ID')
     app.config['DEBUG'] = True
     app.config['PREFERRED_URL_SCHEME'] = 'https'
     print("Additional Flask config options set")
@@ -209,7 +210,7 @@ try:
                     # Create a new run
                     run = client.beta.threads.runs.create(
                         thread_id=thread_id,
-                        assistant_id="asst_RPpg13jrshEESBjAmIjKkpSD"
+                        assistant_id=os.getenv('ASSISTANT_ID')
                     )
                     app.logger.debug(f"Run created with ID: {run.id}")
 
