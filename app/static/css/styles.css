@@ -89,7 +89,8 @@ body {
   border: 1px solid #ccc;
   border-radius: 10px;
   font-size: 14px;
-  margin-top: 20px;
+  margin-top: 5px;
+  margin-bottom: -20px;
 }
 
 #chat-form button {
