@@ -67,15 +67,6 @@ body {
   margin-right: 10px;
 }
 
-.bot-label {
-  background-color: #FFD700;
-  color: #333;
-  padding: 2px 6px;
-  border-radius: 10px;
-  font-size: 12px;
-  margin-top: 5px;
-}
-
 .chatbox {
   flex: 1;
   height: 100%;
@@ -93,18 +84,20 @@ body {
 }
 
 #chat-input {
-  width: 100%;
+  width: 95%;
   padding: 10px;
   border: 1px solid #ccc;
-  border-radius: 20px;
+  border-radius: 10px;
   font-size: 14px;
+  vertical-align: center;
 }
 
 #chat-form button {
-  background-color: transparent;
+  background-color: #FF6F61;
   border: none;
-  color: #FF6F61;
+  color: white;
   font-size: 24px;
+  vertical-align: center;
   cursor: pointer;
 }
 
@@ -222,8 +215,10 @@ body {
   padding: 2px 6px !important;
   border-radius: 10px !important;
   font-size: 12px !important;
-  margin-left: 5px !important;
+  margin-left: 0px !important;
+  margin-top: 0px;
 }
+
 
 button {
   background-color: #3b5998;

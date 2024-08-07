@@ -20,7 +20,7 @@
         <form id="chat-form" method="POST">
             {{ form.hidden_tag() }}
             {{ form.question(id='chat-input', placeholder='Type a reply...', rows='1', required=True) }}
-            <button type="submit">↑</button>
+            <button class="chat-form button" type="submit">Send</button>
         </form>
     </div>
     <script src="/static/js/chat.js"></script>
