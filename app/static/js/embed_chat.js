@@ -127,11 +127,11 @@
             if (iframe.style.display === 'none') {
                 iframe.style.display = 'block';
                 openButton.classList.add('open');
-                buttonText.style.display = 'none';
+                buttonText.style.display = 'none'; // Hide the text
             } else {
                 iframe.style.display = 'none';
                 openButton.classList.remove('open');
-                buttonText.style.display = 'inline';
+                buttonText.style.display = 'inline'; // Show the text again
             }
         }
     }

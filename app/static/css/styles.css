@@ -173,6 +173,7 @@ body {
 
 #epona-chat-open-button .button-text {
   margin-right: 10px;
+  transition: opacity 0.3s ease;
 }
 
 #epona-chat-open-button .arrow-icon {
@@ -195,6 +196,10 @@ body {
 
 #epona-chat-open-button.open .arrow-icon {
   transform: rotate(180deg);
+}
+
+#epona-chat-open-button.open .button-text {
+  display: none;
 }
 
 #epona-chat-open-button:hover {
