@@ -61,7 +61,8 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
+                    'X-CSRFToken': csrfToken,
+                    'Referer': window.location.origin
                 },
                 body: JSON.stringify(sessionInfo),
                 credentials: 'include'
