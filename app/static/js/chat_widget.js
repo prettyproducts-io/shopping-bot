@@ -13,12 +13,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function addAssistantMessage(message) {
-        const messageDiv = document.createElement('div');
-
         const iconImg = document.createElement('img');
         iconImg.src = '/static/assets/epona-logo.png';
         iconImg.className = 'assistant-icon';
         messageDiv.appendChild(iconImg);
+        const messageDiv = document.createElement('div');
+
+   
         messageDiv.className = 'message assistant-message';
         
 
