@@ -2,6 +2,7 @@ import json
 import time
 import logging
 import requests
+import os
 from flask import session
 from flask_wtf import FlaskForm
 from wtforms import TextAreaField
@@ -29,6 +30,9 @@ def get_product_info(product_id, pre_shared_key):
         return {"error": str(e)}
 
 def generate_responses(thread_id, run):
+    session_id = session.get('sid', 'unknown')
+    logger.debug(f"Session ID in generate_responses: {session_id}")
+
     start_time = time.time()
     timeout = 60  # Increased timeout to 60 seconds
     max_retries = 30  # Maximum number of status checks
@@ -54,7 +58,7 @@ def generate_responses(thread_id, run):
                         formatted_content = format_response(content)
 
                         # Track bot response
-                        analytics.track(session['sid'], 'Bot Response Sent', {
+                        analytics.track(session_id, 'Bot Response Sent', {
                             'response': formatted_content
                         })
 
@@ -88,44 +92,30 @@ def generate_responses(thread_id, run):
         logger.debug("Maximum retries reached.")
         yield f"data: {json.dumps({'error': 'Maximum retries reached'})}\n\n"
 
-
 def format_response(content):
     try:
         response_data = json.loads(content)
-        
         if 'response' in response_data and isinstance(response_data['response'], str):
             try:
                 inner_json = json.loads(response_data['response'].strip('`').strip())
                 if isinstance(inner_json, dict):
                     response_data = inner_json
-            except json.JSONDecodeError as e:
-                logger.warning(f"JSONDecodeError when parsing inner response: {str(e)}")
-        
+            except json.JSONDecodeError:
+                pass
+
         if 'response' not in response_data:
             raise ValueError("Invalid response format")
-        
-        # Parse and inspect the content of the response to find the embedded products
-        response_content = response_data.get('response', "")
-        products_found = []
-        
-        try:
-            inner_content = json.loads(response_content)
-            products_found = inner_content.get('products', [])
-        except (json.JSONDecodeError, ValueError) as e:
-            # If error occurs, we just stick to existing products list in response
-            logger.warning(f"Error parsing detailed response content: {str(e)}")
 
-        # Check products array and cumulatively determine includes_products
-        response_data['includes_products'] = len(products_found) > 0 or len(response_data.get('products', [])) > 0
+        # Ensure includes_products field is a boolean, and reflect correct state
+        response_data['includes_products'] = bool(response_data.get('products', []))
 
-        # Ensure includes_products field is a boolean
         return json.dumps(response_data)
     except json.JSONDecodeError:
         return json.dumps({
             "response": content,
             "products": [],
             "includes_products": False
-        }) 
+        })
 
 
 def handle_required_action(run, thread_id):

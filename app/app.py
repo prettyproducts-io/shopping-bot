@@ -108,17 +108,23 @@ try:
     class ChatForm(FlaskForm):
         question = TextAreaField('Question', validators=[DataRequired()])
 
+    def ensure_session_id():
+        if 'sid' not in session:
+            session['sid'] = os.urandom(16).hex()
+        return session['sid']
+    
     @app.before_request
-    def log_request_info():
-        app.logger.debug('Headers: %s', request.headers)
-        app.logger.debug('Body: %s', request.get_data())
-        app.logger.debug('URL: %s', request.url)
-        app.logger.debug('Method: %s', request.method)
     def before_request():
         app.logger.debug(f"Session before request: {session.items()}")
         if 'sid' not in session:
             session['sid'] = os.urandom(16).hex()
         app.logger.debug(f"Session after potential sid assignment: {session.items()}")
+    def log_request_info():
+        app.logger.debug('Headers: %s', request.headers)
+        app.logger.debug('Body: %s', request.get_data())
+        app.logger.debug('URL: %s', request.url)
+        app.logger.debug('Method: %s', request.method)
+
 
     @app.after_request
     def add_csrf_token_to_response(response):
@@ -183,7 +189,11 @@ try:
                 question = form.question.data
                 logger.debug(f"Validated question: {question}")
 
-                session_id = ensure_str(session.get('sid', os.urandom(16).hex()))
+                session_id = session.get('sid')
+                if not session_id:
+                    session_id = os.urandom(16).hex()
+                    session['sid'] = session_id
+                logger.debug(f"Session ID in /ask route: {session_id}")
 
                 if 'chat_session_started' not in session:
                     analytics.track(session_id, 'Chat Session Started', {
@@ -195,12 +205,10 @@ try:
                     'question': question
                 })
 
-                logger.debug(f"Session ID: {session_id}")
                 thread_id = ensure_str(get_or_create_thread(session_id))
                 logger.debug(f"Thread ID: {thread_id}")
 
                 try:
-                    logger.debug(f"Thread ID: {thread_id}")
                     client.beta.threads.messages.create(
                         thread_id=thread_id,
                         role="user",

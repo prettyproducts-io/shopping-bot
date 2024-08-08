@@ -1,4 +1,3 @@
-from openai import OpenAI
 from alive_progress import alive_bar
 import time
 import json
