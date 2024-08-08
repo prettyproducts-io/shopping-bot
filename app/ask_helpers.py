@@ -14,10 +14,12 @@ logger = logging.getLogger(__name__)
 class ChatForm(FlaskForm):
     question = TextAreaField('Question', validators=[DataRequired()])
 
-def get_product_info(product_id, pre_shared_key):
+pre_shared_key = config['pre_shared_key']
+webhook_url = config['webhook_url']
+
+def get_product_info(product_id):
     try:
         response = requests.post(
-            config['webhook_url'],
             json={
                 'id': product_id,
                 'pre_shared_key': pre_shared_key
@@ -125,7 +127,7 @@ def handle_required_action(run, thread_id):
             if tool_call.function.name == "get_product_info":
                 try:
                     arguments = json.loads(tool_call.function.arguments)
-                    product_info = get_product_info(arguments['id'], arguments['pre_shared_key'])
+                    product_info = get_product_info(arguments['id'])
                     tool_outputs.append({
                         "tool_call_id": tool_call.id,
                         "output": json.dumps(product_info)
