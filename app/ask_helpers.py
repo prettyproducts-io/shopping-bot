@@ -20,8 +20,8 @@ webhook_url = config['webhook_url']
 def get_product_info(product_id):
     try:
         response = requests.post(
+            url=webhook_url,
             json={
-                'url': webhook_url,
                 'id': product_id,
                 'pre_shared_key': pre_shared_key
             }
