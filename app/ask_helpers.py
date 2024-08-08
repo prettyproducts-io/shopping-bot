@@ -16,13 +16,12 @@ class ChatForm(FlaskForm):
 
 def get_product_info(product_id, pre_shared_key, webhook_url):
     try:
-        response = requests.post(
-            url=webhook_url,
-            json={
-                'id': product_id,
-                'pre_shared_key': pre_shared_key
-            }
-        )
+        # Construct the URL with the correct scheme
+        url = f"{webhook_url}/{product_id}?key={pre_shared_key}"
+        logger.debug(f"Sending request to URL: {url}")
+
+        response = requests.post(url)
+        logger.debug(f"Received response from webhook: {response.status_code} - {response.content}")
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
