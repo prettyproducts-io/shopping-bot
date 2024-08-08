@@ -102,8 +102,9 @@ def format_response(content):
         if 'response' not in response_data:
             raise ValueError("Invalid response format")
 
-        # Ensure includes_products field is a boolean, and reflect correct state
-        response_data['includes_products'] = bool(response_data.get('products', []))
+        # Ensure includes_products field is correctly set based on the products array
+        products = response_data.get('products', [])
+        response_data['includes_products'] = bool(products)
 
         return json.dumps(response_data)
     except json.JSONDecodeError:
