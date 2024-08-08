@@ -19,7 +19,9 @@
 
         <form id="chat-form" method="POST">
             {{ form.hidden_tag() }}
-            {{ form.question(id='chat-input', placeholder='Type a reply...', rows='1', required=True) }}
+            <div class="form-group">
+                {{ form.question(id='chat-input', class='form-control', placeholder='Type a reply...', rows='3', required=True) }}
+            </div>
             <button class="chat-form button" type="submit">Send</button>
         </form>
     </div>

@@ -6,17 +6,9 @@ from flask import session
 from flask_wtf import FlaskForm
 from wtforms import TextAreaField
 from wtforms.validators import DataRequired
-from .app import client, analytics
+from .initialize import client, analytics, config
 
 logger = logging.getLogger(__name__)
-
-# Add this function to load the config
-def load_config():
-    with open('config.json', 'r') as f:
-        return json.load(f)
-
-# Load the config
-config = load_config()
 
 class ChatForm(FlaskForm):
     question = TextAreaField('Question', validators=[DataRequired()])

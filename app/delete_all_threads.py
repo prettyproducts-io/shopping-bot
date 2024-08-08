@@ -5,23 +5,11 @@ import json
 from redis import Redis
 import os
 from dotenv import load_dotenv
-
-def load_config():
-    with open('config.json', 'r') as f:
-        return json.load(f)
-
-config = load_config()
-print("Configuration loaded")
+from initialize import client
 
 # Load environment variables
 load_dotenv()
 
-# Use the API key from your config file
-API_KEY = config['openai_api_key']
-print(f"API Key: {API_KEY[:5]}...{API_KEY[-5:]}")  # Only print first and last 5 characters
-
-# Initialize the OpenAI client
-client = OpenAI(api_key=API_KEY)
 
 # Initialize Redis connection
 redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')

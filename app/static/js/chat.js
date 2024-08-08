@@ -60,108 +60,98 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 100); // 100ms delay
     }
 
-    function appendMessage(sender, message) {
-        const messageContainer = document.createElement('div');
-        messageContainer.className = `message-container ${sender}-container`;
+    function appendProductCards(sender, products) {
+        products.forEach(product => {
+            const cardContainer = document.createElement('div');
+            cardContainer.className = `message-container ${sender}-container product-card-container`;
     
-        if (sender === 'assistant') {
-            const iconImg = document.createElement('img');
-            iconImg.src = '/static/assets/epona-logo.png';
-            iconImg.className = 'assistant-icon';
-            iconImg.alt = 'Epona Logo';
-            messageContainer.appendChild(iconImg);
-        }
-    
-        const messageElement = document.createElement('div');
-        messageElement.className = `message ${sender}-message`;
-    
-        // Remove any existing logo from the message content
-        message = message.replace(/<img[^>]*>/g, '');
-    
-        try {
-            let content = '';
-    
-            if (isJSONString(message)) {
-                const jsonMessage = JSON.parse(message);
-    
-                if (typeof jsonMessage.response === 'string') {
-                    try {
-                        const innerJson = JSON.parse(jsonMessage.response.replace(/```json\n|\n```/g, ''));
-                        if (innerJson && typeof innerJson.response === 'string') {
-                            content = formatMarkdown(innerJson.response);
-                            jsonMessage.products = innerJson.products || [];
-                        } else {
-                            content = formatMarkdown(jsonMessage.response);
-                        }
-                    } catch (innerError) {
-                        content = formatMarkdown(jsonMessage.response);
-                    }
-                } else {
-                    content = formatMarkdown(JSON.stringify(jsonMessage.response));
-                }
-    
-                const introElement = document.createElement('div');
-                introElement.className = `message ${sender}-message`;
-                introElement.innerHTML = `<p>${content}</p>`;
-                chatbox.appendChild(introElement);
-    
-                // Check the includes_products field to decide whether to add product recommendations
-                if (jsonMessage.includes_products && jsonMessage.products && jsonMessage.products.length > 0) {
-                    jsonMessage.products.forEach(product => {
-                        const { productHTML, descriptionHTML } = formatProduct(product);
-    
-                        const productElement = document.createElement('div');
-                        productElement.className = `message ${sender}-message product-card`;
-                        productElement.innerHTML = productHTML;
-                        chatbox.appendChild(productElement);
-    
-                        const descriptionElement = document.createElement('div');
-                        descriptionElement.className = `message ${sender}-message product-description`;
-                        descriptionElement.innerHTML = descriptionHTML;
-                        chatbox.appendChild(descriptionElement);
-    
-                        // Scroll after each product is added
-                        scrollToBottom();
-                    });
-                }
-            } else {
-                content = encodeHTML(message);  // Sanitize and encode content
-                content = formatMarkdown(content);
-                messageElement.innerHTML = `<p>${content}</p>`;
-                chatbox.appendChild(messageElement);
+            /*
+            if (sender === 'assistant') {
+                const iconImg = document.createElement('img');
+                iconImg.src = '/static/assets/epona-logo.png';
+                iconImg.className = 'assistant-icon';
+                iconImg.alt = 'Epona Logo';
+                cardContainer.appendChild(iconImg);
             }
-        } catch (error) {
-            console.error('Failed to parse message:', error);
-            messageElement.textContent = encodeHTML(message);  // Fallback to showing raw, encoded message in case of parsing error
-            chatbox.appendChild(messageElement);
-        }
+    */
+            const cardElement = document.createElement('div');
+            cardElement.className = 'product-card';
+            cardElement.innerHTML = `
+                <img src="${product.image}" alt="${product.title}" class="product-image">
+                <div class="product-info">
+                    <h3 class="product-title">${product.title}</h3>
+                    <p class="product-price">${product.price}</p>
+                    <a href="${product.link}" class="product-link" target="_blank">View Product</a>
+                </div>
+            `;
     
-        messageContainer.appendChild(messageElement);
-        chatbox.appendChild(messageContainer);
-        chatbox.scrollTop = chatbox.scrollHeight;
+            cardContainer.appendChild(cardElement);
+            chatbox.appendChild(cardContainer);
     
-        // Scroll to the bottom after adding the message
-        scrollToBottom();
+            const descriptionContainer = document.createElement('div');
+            descriptionContainer.className = `message-container ${sender}-container`;
+    
+            if (sender === 'assistant') {
+                const descIconImg = document.createElement('img');
+                descIconImg.src = '/static/assets/epona-logo.png';
+                descIconImg.className = 'assistant-icon';
+                descIconImg.alt = 'Epona Logo';
+                descriptionContainer.appendChild(descIconImg);
+            }
+    
+            const descriptionElement = document.createElement('div');
+            descriptionElement.className = `message ${sender}-message product-description`;
+            descriptionElement.innerHTML = `<p>${product.description}</p>`;
+            descriptionContainer.appendChild(descriptionElement);
+            chatbox.appendChild(descriptionContainer);
+        });
     }
 
-    function formatProduct(product) {
-        const productHTML = `
-            <div class="product-card">
-                <img src="${product.image}" alt="${product.title}">
-                <h3>${product.title}</h3>
-                <div class="price">Price: ${product.price}</div>
-                <a class="view-product-btn" href="${product.link}" target="_blank">View Product</a>
-            </div>
-        `;
-
-        const descriptionHTML = `
-            <div class="product-description">
-                <p><strong>Stock Status</strong>: ${product.stock_status}</p>
-                <p>${product.description}</p>
-            </div>
-        `;
-
-        return { productHTML, descriptionHTML };
+    function appendMessage(sender, message) {
+        try {
+            let jsonMessage;
+            if (typeof message === 'string') {
+                try {
+                    jsonMessage = JSON.parse(message);
+                } catch (e) {
+                    // If parsing fails, treat it as a plain text message
+                    jsonMessage = { response: message };
+                }
+            } else {
+                jsonMessage = message;
+            }
+    
+            const messageContainer = document.createElement('div');
+            messageContainer.className = `message-container ${sender}-container`;
+    
+            if (sender === 'assistant') {
+                const iconImg = document.createElement('img');
+                iconImg.src = '/static/assets/epona-logo.png';
+                iconImg.className = 'assistant-icon';
+                iconImg.alt = 'Epona Logo';
+                messageContainer.appendChild(iconImg);
+            }
+    
+            const messageElement = document.createElement('div');
+            messageElement.className = `message ${sender}-message`;
+    
+            if (jsonMessage.response) {
+                messageElement.innerHTML = `<p>${formatMarkdown(jsonMessage.response)}</p>`;
+            } else if (sender === 'user') {
+                messageElement.innerHTML = `<p>${formatMarkdown(message)}</p>`;
+            }
+    
+            messageContainer.appendChild(messageElement);
+            chatbox.appendChild(messageContainer);
+    
+            if (jsonMessage.includes_products && jsonMessage.products && jsonMessage.products.length > 0) {
+                appendProductCards(sender, jsonMessage.products);
+            }
+        } catch (error) {
+            console.error('Failed to process message:', error);
+        }
+    
+        scrollToBottom();
     }
 
     chatForm.addEventListener('submit', async (e) => {
@@ -187,28 +177,27 @@ document.addEventListener('DOMContentLoaded', function() {
             if (response.ok) {
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
-                let assistantMessage = '';
-
+                let buffer = '';
+    
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
                     
-                    const chunk = decoder.decode(value);
-                    const lines = chunk.split('\n');
-
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop();
+    
                     for (const line of lines) {
                         if (line.startsWith('data: ')) {
                             const data = line.slice(5).trim();
                             if (data === '[DONE]') {
                                 console.log('Stream completed');
-                                break;
+                                continue;
                             }
-
+    
                             try {
                                 const jsonData = JSON.parse(data);
-                                if (jsonData.response) {
-                                    assistantMessage = jsonData.response;
-                                }
+                                appendMessage('assistant', jsonData);
                             } catch (error) {
                                 console.error('Failed to parse JSON: ', error);
                                 appendMessage('error', `Error: ${error.message}`);
@@ -216,8 +205,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                 }
-
-                appendMessage('assistant', assistantMessage);
             } else {
                 const errorData = await response.json();
                 appendMessage('error', `Error: ${errorData.error}`);
@@ -237,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             if (response.ok) {
                 const data = await response.json();
-                appendMessage('assistant', data.welcome_message);
+                appendMessage('assistant', data);
             } else {
                 console.error('Failed to fetch welcome message');
             }

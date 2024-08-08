@@ -1,9 +1,8 @@
 print("Starting app initialization...")
 import logging
-from openai import OpenAI, OpenAIError
+from openai import OpenAIError
 from flask import Flask, request, jsonify, render_template, send_from_directory, session, Response, stream_with_context, make_response
 from flask_session import Session
-import segment.analytics as analytics
 from flask_wtf import FlaskForm, CSRFProtect
 from flask_wtf.csrf import CSRFProtect, generate_csrf, validate_csrf
 from flask_basicauth import BasicAuth
@@ -11,14 +10,15 @@ from flask_jwt_extended import JWTManager, create_access_token
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_cors import CORS
-from dotenv import load_dotenv
-import json
-import os
-from wtforms import TextAreaField
-from wtforms.validators import DataRequired
+from .initialize import client, analytics, config
 from .session_manager import get_or_create_thread, ensure_str
 from .redis_config import redis_connection
 from .ask_helpers import ChatForm, generate_responses
+from dotenv import load_dotenv
+import os
+from wtforms import TextAreaField
+from wtforms.validators import DataRequired
+
 print("Imports complete")
 
 logging.basicConfig(level=logging.DEBUG)
@@ -28,17 +28,6 @@ try:
     # Load environment variables
     load_dotenv()
     print("Environment variables loaded")
-
-    # Add this function to load the config
-    def load_config():
-        with open('config.json', 'r') as f:
-            return json.load(f)
-
-    config = load_config()
-    print("Configuration loaded")
-
-    # Initialize OpenAI client
-    client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
         
     print("Creating Flask app")
     app = Flask(__name__, template_folder='templates', static_folder='static')
@@ -47,7 +36,7 @@ try:
     print("Setting up CORS")
     CORS(app, resources={
         r"/*": {
-            "origins": ["https://www.eqbay.co", "https://eqbay.co", "https://epona.eqbay.co"],
+            "origins": ["https://www.eqbay.co", "https://eqbay.co", "https://epona.eqbay.co", "http://localhost:*", "http://127.0.0.1:*"],
             "methods": ["GET", "POST", "OPTIONS"],
             "allow_headers": ["Content-Type", "X-CSRFToken"],
             "supports_credentials": True
@@ -251,7 +240,10 @@ try:
 
         welcome_message = config.get('welcome_message', '')
         csrf_token = generate_csrf()
-        response = jsonify({"welcome_message": welcome_message, "csrf_token": csrf_token})
+        response = jsonify({
+            "response": welcome_message,
+            "csrf_token": csrf_token
+        })
         response.headers.add('Access-Control-Allow-Origin', 'https://www.eqbay.co')
         response.headers.add('Access-Control-Allow-Credentials', 'true')
         return response
