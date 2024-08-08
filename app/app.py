@@ -7,7 +7,7 @@ import segment.analytics as analytics
 from flask_wtf import FlaskForm, CSRFProtect
 from flask_wtf.csrf import CSRFProtect, generate_csrf, validate_csrf
 from flask_basicauth import BasicAuth
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required
+from flask_jwt_extended import JWTManager, create_access_token
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_cors import CORS
@@ -16,11 +16,9 @@ import json
 import os
 from wtforms import TextAreaField
 from wtforms.validators import DataRequired
-import datetime
-import time
-from .session_manager import get_or_create_thread, add_message_to_thread, ensure_str
-from .process_document import get_product_info
+from .session_manager import get_or_create_thread, ensure_str
 from .redis_config import redis_connection
+from .ask_helpers import ChatForm, generate_responses
 print("Imports complete")
 
 logging.basicConfig(level=logging.DEBUG)
@@ -166,204 +164,80 @@ try:
         return jsonify(access_token=token)
 
     @app.route('/ask', methods=['POST'])
+    @csrf.exempt
     def ask():
         try:
-            app.logger.debug("Entered the /ask endpoint")
-            app.logger.debug(f"Received request: {request.method} {request.url}")
-            app.logger.debug(f"Form data: {request.form}")
+            logger.debug("Entered the /ask endpoint")
+            logger.debug(f"Received request: {request.method} {request.url}")
+            logger.debug(f"Form data: {request.form}")
 
             question = request.form.get('question')
             csrf_token = request.form.get('csrf_token')
 
-            app.logger.debug(f"Extracted form fields - question: {question}, csrf_token: {csrf_token}")
+            logger.debug(f"Extracted form fields - question: {question}, csrf_token: {csrf_token}")
 
             if not question or not csrf_token:
-                app.logger.debug("Missing question or CSRF token")
+                logger.debug("Missing question or CSRF token")
                 return jsonify({"error": "Missing question or CSRF token"}), 400
 
             try:
-                app.logger.debug("Validating CSRF token")
+                logger.debug("Validating CSRF token")
                 validate_csrf(csrf_token)
-                app.logger.debug("CSRF token validated")
+                logger.debug("CSRF token validated")
             except Exception as e:
-                app.logger.error(f"CSRF validation failed: {str(e)}")
+                logger.error(f"CSRF validation failed: {str(e)}")
                 return jsonify({"error": "Invalid CSRF token"}), 400
 
             form = ChatForm(request.form)
-            app.logger.debug(f"Form validation status: {form.validate()}")
+            logger.debug(f"Form validation status: {form.validate()}")
             if form.validate():
                 question = form.question.data
-                app.logger.debug(f"Validated question: {question}")
+                logger.debug(f"Validated question: {question}")
 
                 session_id = ensure_str(session.get('sid', os.urandom(16).hex()))
 
-                # Track chat session start (if it's a new session)
                 if 'chat_session_started' not in session:
                     analytics.track(session_id, 'Chat Session Started', {
                         'session_id': session_id
                     })
                     session['chat_session_started'] = True
                 
-                # Track user message
                 analytics.track(session_id, 'User Message Sent', {
                     'question': question
                 })
 
-                app.logger.debug(f"Session ID: {session_id}")
+                logger.debug(f"Session ID: {session_id}")
                 thread_id = ensure_str(get_or_create_thread(session_id))
-                app.logger.debug(f"Thread ID: {thread_id}")
+                logger.debug(f"Thread ID: {thread_id}")
 
                 try:
-                    app.logger.debug(f"Thread ID: {thread_id}")
-                    # Add the user's message to the thread
+                    logger.debug(f"Thread ID: {thread_id}")
                     client.beta.threads.messages.create(
                         thread_id=thread_id,
                         role="user",
                         content=question
                     )
-                    app.logger.debug("User message added to thread")
+                    logger.debug("User message added to thread")
 
-                    # Create a new run
                     run = client.beta.threads.runs.create(
                         thread_id=thread_id,
                         assistant_id=app.config['ASSISTANT_ID']
                     )
-                    app.logger.debug(f"Run created with ID: {run.id}")
+                    logger.debug(f"Run created with ID: {run.id}")
 
-                    def generate():
-                        start_time = time.time()
-                        timeout = 60  # Increased timeout to 60 seconds
-                        max_retries = 30  # Maximum number of status checks
-
-                        app.logger.debug(f"Starting status check loop with timeout={timeout}s and max_retries={max_retries}")
-                        for attempt in range(max_retries):
-                            if time.time() - start_time > timeout:
-                                app.logger.debug("Request timed out.")
-                                yield f"data: {json.dumps({'error': 'Request timed out'})}\n\n"
-                                break
-
-                            try:
-                                run_status = client.beta.threads.runs.retrieve(
-                                    thread_id=thread_id,
-                                    run_id=run.id
-                                )
-                                app.logger.debug(f"Attempt {attempt}: Run status: {run_status.status}")
-                                app.logger.debug(f"Full run status: {run_status}")
-
-                                if run_status.status == 'completed':
-                                    app.logger.debug(f"Run completed in attempt {attempt}")
-                                    messages = client.beta.threads.messages.list(thread_id=thread_id, limit=1)
-                                    for message in messages.data:
-                                        if message.role == "assistant":
-                                            content = message.content[0].text.value
-                                            formatted_content = format_response(content)
-
-                                            # Track bot response
-                                            analytics.track(session_id, 'Bot Response Sent', {
-                                                'response': formatted_content
-                                            })
-
-                                            yield f"data: {formatted_content}\n\n"
-                                    yield "event: DONE\ndata: [DONE]\n\n"
-                                    break
-
-                                elif run_status.status in ['failed', 'cancelled', 'expired']:
-                                    app.logger.error(f"Run status is {run_status.status}. Ending loop.")
-                                    yield f"data: {json.dumps({'error': f'Run {run_status.status}'})}\n\n"
-                                    break
-                                elif run_status.status == 'requires_action':
-                                    app.logger.warning(f"Run requires action: {run_status.required_action}")
-                                    if handle_required_action(run_status, thread_id):
-                                        app.logger.debug("Handled required action, retrying status check.")
-                                        time.sleep(2)  # Wait a bit before checking again
-                                        continue
-                                    else:
-                                        app.logger.error("Unable to handle required action. Ending loop.")
-                                        yield f"data: {json.dumps({'error': 'Unable to handle required action'})}\n\n"
-                                        break
-                                else:
-                                    app.logger.debug(f"Run status not final. Sleeping before next attempt.")
-                                    time.sleep(2)  # Increased wait time between checks
-
-                            except Exception as e:
-                                app.logger.error(f"Error checking run status: {str(e)}")
-                                yield f"data: {json.dumps({'error': f'Error checking run status: {str(e)}'})}\n\n"
-                                break
-
-                        else:
-                            app.logger.debug("Maximum retries reached.")
-                            yield f"data: {json.dumps({'error': 'Maximum retries reached'})}\n\n"
-
-                    app.logger.debug("Returning response stream")
-                    return Response(stream_with_context(generate()), content_type='text/event-stream')
+                    return Response(stream_with_context(generate_responses(thread_id, run)), content_type='text/event-stream')
 
                 except OpenAIError as e:
-                    app.logger.error(f"OpenAI API error: {str(e)}")
+                    logger.error(f"OpenAI API error: {str(e)}")
                     return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
             else:
-                app.logger.debug(f"Form validation errors: {form.errors}")
+                logger.debug(f"Form validation errors: {form.errors}")
                 return jsonify({"error": "Invalid form submission"}), 400
 
         except Exception as e:
-            app.logger.error(f"An error occurred in /ask endpoint: {str(e)}")
+            logger.error(f"An error occurred in /ask endpoint: {str(e)}")
             return jsonify({"error": "An unexpected error occurred"}), 500
-            
-    def format_response(content):
-        try:
-            # First, try to parse the entire content as JSON
-            response_data = json.loads(content)
-            
-            # If successful, check if the response is wrapped in a code block
-            if 'response' in response_data and isinstance(response_data['response'], str):
-                # Try to parse the response as JSON if it's a string
-                try:
-                    inner_json = json.loads(response_data['response'].strip('`').strip())
-                    if isinstance(inner_json, dict) and 'response' in inner_json:
-                        response_data = inner_json
-                except json.JSONDecodeError:
-                    pass  # If inner parsing fails, use the outer JSON as is
-            
-            # Ensure the response follows the expected format
-            if 'response' not in response_data or 'products' not in response_data:
-                raise ValueError("Invalid response format")
-
-            # Return the JSON as a string
-            return json.dumps(response_data)
-        except json.JSONDecodeError:
-            # If the response is not valid JSON, wrap it in the expected format
-            return json.dumps({
-                "response": content,
-                "products": []
-            })
-
-        
-    def handle_required_action(run, thread_id):
-        if run.required_action and run.required_action.type == "submit_tool_outputs":
-            tool_outputs = []
-            for tool_call in run.required_action.submit_tool_outputs.tool_calls:
-                if tool_call.function.name == "get_product_info":
-                    try:
-                        arguments = json.loads(tool_call.function.arguments)
-                        product_info = get_product_info(arguments['id'], arguments['pre_shared_key'])
-                        tool_outputs.append({
-                            "tool_call_id": tool_call.id,
-                            "output": json.dumps(product_info)
-                        })
-                    except Exception as e:
-                        app.logger.error(f"Error in get_product_info: {str(e)}")
-                        tool_outputs.append({
-                            "tool_call_id": tool_call.id,
-                            "output": json.dumps({"error": str(e)})
-                        })
-            
-            client.beta.threads.runs.submit_tool_outputs(
-                thread_id=thread_id,
-                run_id=run.id,
-                tool_outputs=tool_outputs
-            )
-            return True
-        return False
 
     @app.route('/welcome', methods=['GET', 'OPTIONS'])
     def get_welcome_message():

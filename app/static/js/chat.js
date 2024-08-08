@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function appendMessage(sender, message) {
         const messageContainer = document.createElement('div');
         messageContainer.className = `message-container ${sender}-container`;
-
+    
         if (sender === 'assistant') {
             const iconImg = document.createElement('img');
             iconImg.src = '/static/assets/epona-logo.png';
@@ -74,16 +74,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
         const messageElement = document.createElement('div');
         messageElement.className = `message ${sender}-message`;
-
+    
         // Remove any existing logo from the message content
         message = message.replace(/<img[^>]*>/g, '');
-
+    
         try {
             let content = '';
-
+    
             if (isJSONString(message)) {
                 const jsonMessage = JSON.parse(message);
-
+    
                 if (typeof jsonMessage.response === 'string') {
                     try {
                         const innerJson = JSON.parse(jsonMessage.response.replace(/```json\n|\n```/g, ''));
@@ -99,26 +99,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     content = formatMarkdown(JSON.stringify(jsonMessage.response));
                 }
-
+    
                 const introElement = document.createElement('div');
                 introElement.className = `message ${sender}-message`;
                 introElement.innerHTML = `<p>${content}</p>`;
                 chatbox.appendChild(introElement);
-
-                if (jsonMessage.products && jsonMessage.products.length > 0) {
+    
+                // Check the includes_products field to decide whether to add product recommendations
+                if (jsonMessage.includes_products && jsonMessage.products && jsonMessage.products.length > 0) {
                     jsonMessage.products.forEach(product => {
                         const { productHTML, descriptionHTML } = formatProduct(product);
-
+    
                         const productElement = document.createElement('div');
                         productElement.className = `message ${sender}-message product-card`;
                         productElement.innerHTML = productHTML;
                         chatbox.appendChild(productElement);
-
+    
                         const descriptionElement = document.createElement('div');
                         descriptionElement.className = `message ${sender}-message product-description`;
                         descriptionElement.innerHTML = descriptionHTML;
                         chatbox.appendChild(descriptionElement);
-
+    
                         // Scroll after each product is added
                         scrollToBottom();
                     });
@@ -134,11 +135,11 @@ document.addEventListener('DOMContentLoaded', function() {
             messageElement.textContent = encodeHTML(message);  // Fallback to showing raw, encoded message in case of parsing error
             chatbox.appendChild(messageElement);
         }
-
+    
         messageContainer.appendChild(messageElement);
         chatbox.appendChild(messageContainer);
         chatbox.scrollTop = chatbox.scrollHeight;
-
+    
         // Scroll to the bottom after adding the message
         scrollToBottom();
     }
