@@ -134,6 +134,8 @@ textarea {
   border-radius: 18px;
   font-size: 14px;
   line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .user-message {
@@ -147,14 +149,31 @@ textarea {
   background-color: #F2F2F2;
   color: black;
   align-self: flex-start;
-  display: flex;
+  display: block;
   align-items: flex-start;
   max-width: 75%;
+}
+
+.assistant-message p {
+  margin-bottom: 10px;
 }
 
 /* Ensure messages don't overflow */
 .message.assistant-message {
   max-width: 75%;
+}
+
+.assistant-message .numbered-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 5px;
+}
+
+.assistant-message .numbered-item::before {
+  content: attr(class);
+  font-weight: bold;
+  margin-right: 5px;
+  min-width: 20px;
 }
 
 .thinking {

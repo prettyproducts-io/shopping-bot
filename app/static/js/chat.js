@@ -38,11 +38,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function formatMarkdown(text) {
         return text
             .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')   // Bold text
+            .replace(/(\d+\.\s+)([^\n]+)/g, '<p class="numbered-item">$1$2</p>') // Numbered list items
             .replace(/\n{2,}/g, '</p><p>')                        // Double newlines as paragraph breaks
             .replace(/\n/g, '<br>')                               // Single newlines as line breaks
             .trim();
     }
-
+    
     function encodeHTML(str) {
         return str.replace(/&/g, '&amp;')
                   .replace(/</g, '&lt;')
