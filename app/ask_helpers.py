@@ -14,10 +14,7 @@ logger = logging.getLogger(__name__)
 class ChatForm(FlaskForm):
     question = TextAreaField('Question', validators=[DataRequired()])
 
-pre_shared_key = config['pre_shared_key']
-webhook_url = config['webhook_url']
-
-def get_product_info(product_id):
+def get_product_info(product_id, pre_shared_key, webhook_url):
     try:
         response = requests.post(
             url=webhook_url,
@@ -73,11 +70,12 @@ def generate_responses(thread_id, run):
                 logger.error(f"Run status is {run_status.status}. Ending loop.")
                 yield f"data: {json.dumps({'error': f'Run {run_status.status}'})}\n\n"
                 break
+
             elif run_status.status == 'requires_action':
                 logger.warning(f"Run requires action: {run_status.required_action}")
                 if handle_required_action(run_status, thread_id):
                     logger.debug("Handled required action, retrying status check.")
-                    time.sleep(2)  # Wait a bit before checking again
+                    time.sleep(2)  # Wait before checking again
                     continue
                 else:
                     logger.error("Unable to handle required action. Ending loop.")
@@ -128,7 +126,12 @@ def handle_required_action(run, thread_id):
             if tool_call.function.name == "get_product_info":
                 try:
                     arguments = json.loads(tool_call.function.arguments)
-                    product_info = get_product_info(arguments['id'])
+                    logger.debug(f"Handling required action for product ID {arguments['id']}")
+                    product_info = get_product_info(
+                        arguments['id'],
+                        arguments['pre_shared_key'],
+                        arguments['webhook_url']
+                    )
                     tool_outputs.append({
                         "tool_call_id": tool_call.id,
                         "output": json.dumps(product_info)
@@ -140,6 +143,7 @@ def handle_required_action(run, thread_id):
                         "output": json.dumps({"error": str(e)})
                     })
 
+        logger.debug(f"Submitting tool outputs: {tool_outputs}")
         client.beta.threads.runs.submit_tool_outputs(thread_id=thread_id, run_id=run.id, tool_outputs=tool_outputs)
         return True
     return False
