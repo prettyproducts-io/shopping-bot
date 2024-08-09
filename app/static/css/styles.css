@@ -386,3 +386,37 @@ button:hover {
   flex: 1;
 }
 
+
+.placeholder-container .placeholder-message {
+  background-color: transparent; /* or use #FFFFFF for white background */
+  padding-top: 15px;
+}
+
+#placeholder-message .allLetters {
+  font-size: 1rem;
+  font-family: 'Public Sans', sans-serif;
+  font-weight: normal;
+  background-color: transparent; /* Changed from #FFFFFF to transparent */
+  background: linear-gradient(90deg, #D3D3D3 25%, #FFFFFF 50%, #D3D3D3 75%);
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: shine 4s linear infinite;
+}
+
+@keyframes shine {
+  0% {
+      background-position: 200% 0;
+  }
+  100% {
+      background-position: -200% 0;
+  }
+}
+
+/* Ensure the placeholder message doesn't have any padding or margins that might show a background */
+.placeholder-message {
+  padding: 0;
+  margin: 0;
+}
+

@@ -61,6 +61,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 100); // 100ms delay
     }
 
+    function createPlaceholderMessage() {
+        const messageContainer = document.createElement('div');
+        messageContainer.className = 'message-container assistant-container placeholder-container';
+        messageContainer.id = 'placeholder-message';
+    
+        const iconImg = document.createElement('img');
+        iconImg.src = '/static/assets/epona-logo.png';
+        iconImg.className = 'assistant-icon';
+        iconImg.alt = 'Epona Logo';
+        messageContainer.appendChild(iconImg);
+    
+        const messageElement = document.createElement('div');
+        messageElement.className = 'message assistant-message placeholder-message';
+        messageElement.innerHTML = '<div class="allLetters">Thinking...</div>';
+        messageContainer.appendChild(messageElement);
+    
+        return messageContainer;
+    }
+
     function appendProductCards(sender, products) {
         products.forEach(product => {
             const cardContainer = document.createElement('div');
@@ -163,6 +182,11 @@ document.addEventListener('DOMContentLoaded', function() {
         appendMessage('user', question);
         chatInput.value = '';
     
+        // Add placeholder message
+        const placeholderMessage = createPlaceholderMessage();
+        chatbox.appendChild(placeholderMessage);
+        scrollToBottom();
+    
         const formData = new FormData(chatForm);
         formData.set('question', question);
     
@@ -198,6 +222,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
                             try {
                                 const jsonData = JSON.parse(data);
+                                // Remove placeholder message
+                                chatbox.removeChild(placeholderMessage);
                                 appendMessage('assistant', jsonData);
                             } catch (error) {
                                 console.error('Failed to parse JSON: ', error);
@@ -208,9 +234,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } else {
                 const errorData = await response.json();
+                // Remove placeholder message
+                chatbox.removeChild(placeholderMessage);
                 appendMessage('error', `Error: ${errorData.error}`);
             }
         } catch (error) {
+            // Remove placeholder message
+            chatbox.removeChild(placeholderMessage);
             appendMessage('error', `Error: ${error.message}`);
         }
     });
