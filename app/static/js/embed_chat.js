@@ -32,6 +32,7 @@
                 }
             });
             const data = await response.json();
+            console.log('Fetched wp_username data:', data);  // Log AJAX response
             return data.wp_username || null;
         } catch (error) {
             console.error('Error fetching wp_username:', error);
