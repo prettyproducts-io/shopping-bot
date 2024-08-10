@@ -23,9 +23,16 @@
 
     // Function to get the wordpress_logged_in_ cookie value
     function getWordpressLoggedInUser() {
-        const cookieValue = getCookie('wordpress_logged_in_');
-        if (cookieValue) {
-            return cookieValue.split('|')[0];
+        const cookies = document.cookie.split(";").map(c => c.trim());
+        for (let cookie of cookies) {
+            if (cookie.startsWith("wp_logged_in_user_")) {
+                const cookieValue = cookie.split("=")[1];
+                console.log('wp_logged_in_user_ cookie value:', cookieValue);
+                if (cookieValue) {
+                    const decodedValue = decodeURIComponent(cookieValue);
+                    return decodedValue.split('|')[0];
+                }
+            }
         }
         return null;
     }
