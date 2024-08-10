@@ -41,12 +41,24 @@ def get_user_info(wp_username, pre_shared_key, user_info_webhook_url):
         url = f"{user_info_webhook_url}/{wp_username}?key={pre_shared_key}"
         logger.debug(f"Sending request to URL: {url}")
 
-        response = requests.post(url)
-        logger.debug(f"Received response from webhook: {response.status_code} - {response.content}")
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'application/json',
+        }
+
+        response = requests.get(url, headers=headers, timeout=10)
+        
+        logger.debug(f"Received response from webhook: {response.status_code}")
+        logger.debug(f"Response headers: {response.headers}")
+        logger.debug(f"Response content: {response.content}")
+
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
         logger.error(f"Error fetching user info for ID {wp_username}: {str(e)}")
+        if hasattr(e, 'response'):
+            logger.error(f"Response status code: {e.response.status_code}")
+            logger.error(f"Response content: {e.response.content}")
         return {"error": str(e)}
 
 def generate_responses(thread_id, run):
