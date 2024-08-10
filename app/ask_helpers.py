@@ -8,6 +8,7 @@ from flask_wtf import FlaskForm
 from wtforms import TextAreaField
 from wtforms.validators import DataRequired
 from .initialize import client, analytics, config
+from openai import OpenAIError
 
 logger = logging.getLogger(__name__)
 
@@ -70,22 +71,39 @@ def create_or_get_thread(question):
     # Check if there's an existing thread ID in the session
     thread_id = session.get('thread_id')
 
-    if not thread_id:
-        # If no thread exists, create a new one
+    message_content = f"User question: {question}\n\nSession info: {json.dumps(session_info)}\n\nPre-shared key: {pre_shared_key}"
+
+    def create_new_thread():
         try:
             thread = client.beta.threads.create()
-            thread_id = thread.id
-            session['thread_id'] = thread_id
-            logger.debug(f"Created new thread with ID: {thread_id}")
+            new_thread_id = thread.id
+            session['thread_id'] = new_thread_id
+            logger.debug(f"Created new thread with ID: {new_thread_id}")
+            return new_thread_id
         except Exception as e:
             logger.error(f"Error creating new thread: {str(e)}")
             raise
 
-    # Create the message with session info
-    message_content = f"User question: {question}\n\nSession info: {json.dumps(session_info)}\n\nPre-shared key: {pre_shared_key}"
-
     try:
-        # Add the message to the thread
+        if thread_id:
+            try:
+                # Try to add a message to the existing thread
+                client.beta.threads.messages.create(
+                    thread_id=thread_id,
+                    role="user",
+                    content=message_content
+                )
+                logger.debug(f"Added message to existing thread {thread_id}")
+            except OpenAIError as e:
+                if e.status_code == 404:
+                    logger.warning(f"Thread {thread_id} not found. Creating a new thread.")
+                    thread_id = create_new_thread()
+                else:
+                    raise
+        else:
+            thread_id = create_new_thread()
+
+        # Add the message to the thread (in case a new thread was created)
         client.beta.threads.messages.create(
             thread_id=thread_id,
             role="user",
@@ -101,9 +119,28 @@ def create_or_get_thread(question):
         logger.debug(f"Created run {run.id} for thread {thread_id}")
 
         return thread_id, run
+
     except Exception as e:
-        logger.error(f"Error creating message or run: {str(e)}")
-        raise
+        logger.error(f"Error in create_or_get_thread: {str(e)}")
+        # If any error occurs, create a new thread as a fallback
+        thread_id = create_new_thread()
+        
+        # Add the message to the new thread
+        client.beta.threads.messages.create(
+            thread_id=thread_id,
+            role="user",
+            content=message_content
+        )
+        logger.debug(f"Added message to new fallback thread {thread_id}")
+
+        # Create a run for the new thread
+        run = client.beta.threads.runs.create(
+            thread_id=thread_id,
+            assistant_id=config['assistant_id']
+        )
+        logger.debug(f"Created run {run.id} for new fallback thread {thread_id}")
+
+        return thread_id, run
 
 def generate_responses(thread_id, run):
     session_id = session.get('sid', 'unknown')
