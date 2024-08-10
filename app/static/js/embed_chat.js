@@ -40,6 +40,11 @@
         }
     }
     
+    // Ensure function works correctly
+    getWordpressLoggedInUser().then((username) => {
+        console.log('Username fetched:', username);
+    });
+    
     // Function to get session storage value
     function getSessionStorage(key) {
         return sessionStorage.getItem(key);
@@ -104,10 +109,11 @@
 
     // Function to send session info to chat bot
     async function sendSessionInfo() {
+        const wp_username = await getWordpressLoggedInUser();
         const sessionInfo = {
             current_page_name: document.title,
             current_page_path: window.location.pathname,
-            wp_username: getWordpressLoggedInUser(),
+            wp_username: wp_username,
             visits: parseInt(getSessionStorage('visits')) || 1,
             start: parseInt(getSessionStorage('first_visit_time')),
             last_visit: Date.now(),
@@ -120,8 +126,10 @@
             cart_contents: await getCartItems()
         };
 
+        console.log('Parsed session info:', sessionInfo);  // Log the entire session info
+
         sessionStorage.setItem('previous_visit_time', String(Date.now()));
-    
+
         try {
             const csrfToken = await getCSRFToken();
             const response = await fetch('https://epona.eqbay.co/update_session_info', {
@@ -133,12 +141,12 @@
                 body: JSON.stringify(sessionInfo),
                 credentials: 'include'
             });
-    
+
             if (!response.ok) {
                 const text = await response.text();
                 throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
             }
-    
+
             return await response.json();
         } catch (error) {
             console.error('Error updating session info:', error);
