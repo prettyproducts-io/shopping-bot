@@ -216,11 +216,13 @@ def handle_required_action(run, thread_id):
                 try:
                     arguments = json.loads(tool_call.function.arguments)
                     wp_username = arguments.get('wp_username', 'N/A')
+                    session_wp_username = session.get('client_session_info', {}).get('wp_username')
                     logger.debug(f"Extracted wp_username before get_user_info call: {wp_username}")
 
                     # Verify if transformation happens
-                    if wp_username != 'a8d6e69f_admin':
-                        logger.error(f"wp_username mismatch. Expected 'a8d6e69f_admin', found: {wp_username}")
+                    if wp_username != session_wp_username:
+                        logger.warning(f"wp_username mismatch. Function arg: {wp_username}, Session: {session_wp_username}")
+                        wp_username = session_wp_username
 
                     # Calling the get_user_info method with extracted wp_username
                     user_info = get_user_info(
