@@ -20,7 +20,8 @@ def get_product_info(product_id, pre_shared_key, product_info_webhook_url):
         url = f"{product_info_webhook_url}/{product_id}?key={pre_shared_key}"
         logger.debug(f"Sending request to URL: {url}")
 
-        response = requests.post(url)
+        # Change POST to GET
+        response = requests.get(url, timeout=10)
         logger.debug(f"Received response from webhook: {response.status_code} - {response.content}")
         response.raise_for_status()
         return response.json()
