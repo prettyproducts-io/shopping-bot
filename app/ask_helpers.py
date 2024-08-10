@@ -60,6 +60,48 @@ def get_user_info(wp_username, pre_shared_key, user_info_webhook_url):
             logger.error(f"Response status code: {e.response.status_code}")
             logger.error(f"Response content: {e.response.content}")
         return {"error": str(e)}
+    
+def create_or_get_thread(question):
+    session_id = session.get('sid')
+    session_info = session.get('client_session_info', {})
+
+    # Check if there's an existing thread ID in the session
+    thread_id = session.get('thread_id')
+
+    if not thread_id:
+        # If no thread exists, create a new one
+        try:
+            thread = client.beta.threads.create()
+            thread_id = thread.id
+            session['thread_id'] = thread_id
+            logger.debug(f"Created new thread with ID: {thread_id}")
+        except Exception as e:
+            logger.error(f"Error creating new thread: {str(e)}")
+            raise
+
+    # Create the message with session info
+    message_content = f"User question: {question}\n\nSession info: {json.dumps(session_info)}"
+
+    try:
+        # Add the message to the thread
+        client.beta.threads.messages.create(
+            thread_id=thread_id,
+            role="user",
+            content=message_content
+        )
+        logger.debug(f"Added message to thread {thread_id}")
+
+        # Create a run for the thread
+        run = client.beta.threads.runs.create(
+            thread_id=thread_id,
+            assistant_id=config['assistant_id']
+        )
+        logger.debug(f"Created run {run.id} for thread {thread_id}")
+
+        return thread_id, run
+    except Exception as e:
+        logger.error(f"Error creating message or run: {str(e)}")
+        raise
 
 def generate_responses(thread_id, run):
     session_id = session.get('sid', 'unknown')

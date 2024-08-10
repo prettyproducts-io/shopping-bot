@@ -13,7 +13,7 @@ from flask_cors import CORS
 from .initialize import client, analytics, config
 from .session_manager import get_or_create_thread, ensure_str
 from .redis_config import redis_connection
-from .ask_helpers import ChatForm, generate_responses
+from .ask_helpers import ChatForm, generate_responses, create_or_get_thread
 from dotenv import load_dotenv
 import os
 from wtforms import TextAreaField
@@ -205,27 +205,14 @@ try:
                     'question': question
                 })
 
-                thread_id = ensure_str(get_or_create_thread(session_id))
-                logger.debug(f"Thread ID: {thread_id}")
-
                 try:
-                    client.beta.threads.messages.create(
-                        thread_id=thread_id,
-                        role="user",
-                        content=question
-                    )
-                    logger.debug("User message added to thread")
-
-                    run = client.beta.threads.runs.create(
-                        thread_id=thread_id,
-                        assistant_id=app.config['ASSISTANT_ID']
-                    )
-                    logger.debug(f"Run created with ID: {run.id}")
+                    thread_id, run = create_or_get_thread(question)
+                    logger.debug(f"Thread ID: {thread_id}, Run ID: {run.id}")
 
                     return Response(stream_with_context(generate_responses(thread_id, run)), content_type='text/event-stream')
 
-                except OpenAIError as e:
-                    logger.error(f"OpenAI API error: {str(e)}")
+                except Exception as e:
+                    logger.error(f"Error in thread creation or run: {str(e)}")
                     return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
             else:
@@ -233,7 +220,7 @@ try:
                 return jsonify({"error": "Invalid form submission"}), 400
 
         except Exception as e:
-            logger.error(f"An error occurred in /ask endpoint: {str(e)}")
+            logger.error(f"An unexpected error occurred in /ask endpoint: {str(e)}")
             return jsonify({"error": "An unexpected error occurred"}), 500
 
     @app.route('/welcome', methods=['GET', 'OPTIONS'])
