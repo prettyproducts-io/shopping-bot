@@ -153,14 +153,20 @@ def handle_required_action(run, thread_id):
             if tool_call.function.name == "get_user_info":
                 try:
                     arguments = json.loads(tool_call.function.arguments)
-                    logger.debug(f"Handling required action for user ID {arguments['wp_username']}")
                     wp_username = arguments.get('wp_username', 'N/A')
-                    logger.debug(f"Extracted wp_username: {wp_username}")
+                    logger.debug(f"Extracted wp_username before get_user_info call: {wp_username}")
+
+                    # Verify if transformation happens
+                    if wp_username != 'a8d6e69f_admin':
+                        logger.error(f"wp_username mismatch. Expected 'a8d6e69f_admin', found: {wp_username}")
+
+                    # Calling the get_user_info method with extracted wp_username
                     user_info = get_user_info(
                         wp_username,
                         arguments['pre_shared_key'],
                         arguments['user_info_webhook_url']
                     )
+                    
                     tool_outputs.append({
                         "tool_call_id": tool_call.id,
                         "output": json.dumps(user_info)
