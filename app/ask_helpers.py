@@ -30,6 +30,10 @@ def get_product_info(product_id, pre_shared_key, product_info_webhook_url):
     
 def get_user_info(wp_username, pre_shared_key, user_info_webhook_url):
     try:
+        if not wp_username:
+            logger.error("wp_username is not provided, cannot fetch user info.")
+            return {"error": "Missing wp_username"}
+        
         # Construct the URL with the correct scheme
         url = f"{user_info_webhook_url}/{wp_username}?key={pre_shared_key}"
         logger.debug(f"Sending request to URL: {url}")
@@ -150,8 +154,10 @@ def handle_required_action(run, thread_id):
                 try:
                     arguments = json.loads(tool_call.function.arguments)
                     logger.debug(f"Handling required action for user ID {arguments['wp_username']}")
+                    wp_username = arguments.get('wp_username', 'N/A')
+                    logger.debug(f"Extracted wp_username: {wp_username}")
                     user_info = get_user_info(
-                        arguments['wp_username'],
+                        wp_username,
                         arguments['pre_shared_key'],
                         arguments['user_info_webhook_url']
                     )
