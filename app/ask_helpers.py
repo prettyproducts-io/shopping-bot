@@ -34,6 +34,9 @@ def get_user_info(wp_username, pre_shared_key, user_info_webhook_url):
             logger.error("wp_username is not provided, cannot fetch user info.")
             return {"error": "Missing wp_username"}
         
+        # Remove trailing slash from the webhook URL if present
+        user_info_webhook_url = user_info_webhook_url.rstrip('/')
+        
         # Construct the URL with the correct scheme
         url = f"{user_info_webhook_url}/{wp_username}?key={pre_shared_key}"
         logger.debug(f"Sending request to URL: {url}")
