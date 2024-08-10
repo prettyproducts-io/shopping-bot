@@ -64,6 +64,7 @@ def get_user_info(wp_username, pre_shared_key, user_info_webhook_url):
 def create_or_get_thread(question):
     session_id = session.get('sid')
     session_info = session.get('client_session_info', {})
+    pre_shared_key = config.get('pre_shared_key', '')
 
     # Check if there's an existing thread ID in the session
     thread_id = session.get('thread_id')
@@ -80,7 +81,7 @@ def create_or_get_thread(question):
             raise
 
     # Create the message with session info
-    message_content = f"User question: {question}\n\nSession info: {json.dumps(session_info)}"
+    message_content = f"User question: {question}\n\nSession info: {json.dumps(session_info)}\n\nPre-shared key: {pre_shared_key}"
 
     try:
         # Add the message to the thread
@@ -249,6 +250,7 @@ def format_response(content):
 def handle_required_action(run, thread_id):
     if run.required_action and run.required_action.type == "submit_tool_outputs":
         tool_outputs = []
+        pre_shared_key = config.get('pre_shared_key', '')  # Get the pre-shared key from config
         for tool_call in run.required_action.submit_tool_outputs.tool_calls:
             if tool_call.function.name == "get_product_info":
                 try:
@@ -256,7 +258,7 @@ def handle_required_action(run, thread_id):
                     logger.debug(f"Handling required action for product ID {arguments['id']}")
                     product_info = get_product_info(
                         arguments['id'],
-                        arguments['pre_shared_key'],
+                        pre_shared_key,  # Use the pre-shared key from config
                         arguments['product_info_webhook_url']
                     )
                     tool_outputs.append({
@@ -284,7 +286,7 @@ def handle_required_action(run, thread_id):
                     # Calling the get_user_info method with extracted wp_username
                     user_info = get_user_info(
                         wp_username,
-                        arguments['pre_shared_key'],
+                        pre_shared_key,  # Use the pre-shared key from config
                         arguments['user_info_webhook_url']
                     )
                     
