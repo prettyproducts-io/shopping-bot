@@ -24,12 +24,14 @@
     // Function to get the wordpress_logged_in_ cookie value
     function getWordpressLoggedInUser() {
         const cookies = document.cookie.split(";").map(c => c.trim());
+        console.log('All cookies:', cookies);  // Log all cookies for debugging
         for (let cookie of cookies) {
             if (cookie.startsWith("wp_logged_in_user_")) {
                 const cookieValue = cookie.split("=")[1];
-                console.log('wp_logged_in_user_ cookie value:', cookieValue);
+                console.log('Detected wp_logged_in_user_ cookie value:', cookieValue);
                 if (cookieValue) {
                     const decodedValue = decodeURIComponent(cookieValue);
+                    console.log('Decoded cookie value:', decodedValue);
                     return decodedValue.split('|')[0];
                 }
             }
@@ -117,6 +119,8 @@
             cart_contents: await getCartItems()
         };
     
+        console.log('Parsed wp_username:', sessionInfo.wp_username);  // Log parsed wp_username
+
         sessionStorage.setItem('previous_visit_time', String(Date.now()));
     
         try {
