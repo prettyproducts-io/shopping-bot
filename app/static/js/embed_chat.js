@@ -22,23 +22,21 @@
     }
 
     // Function to get the wordpress_logged_in_ cookie value
-    function getWordpressLoggedInUser() {
-        const cookies = document.cookie.split(";").map(c => c.trim());
-        console.log('All cookies:', cookies);  // Log all cookies for debugging
-    
-        for (let cookie of cookies) {
-            // Check for the wordpress_logged_in_ cookie name pattern
-            if (cookie.startsWith("wordpress_logged_in_")) {
-                const cookieValue = cookie.split("=")[1];
-                console.log('Detected wordpress_logged_in_ cookie value:', cookieValue);
-                if (cookieValue) {
-                    const decodedValue = decodeURIComponent(cookieValue);
-                    console.log('Decoded cookie value:', decodedValue);
-                    return decodedValue.split('|')[0];  // Extract username
+    async function getWordpressLoggedInUser() {
+        try {
+            const response = await fetch('/wp-admin/admin-ajax.php?action=fetch_wp_username', {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
                 }
-            }
+            });
+            const data = await response.json();
+            return data.wp_username || null;
+        } catch (error) {
+            console.error('Error fetching wp_username:', error);
+            return null;
         }
-        return null;
     }
     
     // Function to get session storage value
@@ -120,8 +118,6 @@
             version: 1.0,
             cart_contents: await getCartItems()
         };
-    
-        console.log('Parsed wp_username:', sessionInfo.wp_username);  // Log parsed wp_username
 
         sessionStorage.setItem('previous_visit_time', String(Date.now()));
     
