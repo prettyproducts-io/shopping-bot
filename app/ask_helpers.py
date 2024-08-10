@@ -52,6 +52,10 @@ def generate_responses(thread_id, run):
     logger.debug(f"Session ID in generate_responses: {session_id}")
     logger.debug(f"Session Info in generate_responses: {session_info}")
 
+    # Make sure we log wp_username here
+    if session_info.get('wp_username') != 'a8d6e69f_admin':
+        logger.error(f"wp_username mismatch in session_info. Expected 'a8d6e69f_admin', found: {session_info.get('wp_username')}")
+
     start_time = time.time()
     timeout = 60
     max_retries = 30
@@ -86,6 +90,9 @@ def generate_responses(thread_id, run):
                 break
 
             elif run_status.status == 'requires_action':
+                # Add logs before calling handle_required_action
+                logger.debug(f"Handling required action with session info: {session_info}")
+                
                 if handle_required_action(run_status, thread_id):
                     time.sleep(2)
                     continue
@@ -100,6 +107,61 @@ def generate_responses(thread_id, run):
             break
     else:
         yield f"data: {json.dumps({'error': 'Maximum retries reached'})}\n\n"
+
+def handle_required_action(run, thread_id):
+    if run.required_action and run.required_action.type == "submit_tool_outputs":
+        tool_outputs = []
+        for tool_call in run.required_action.submit_tool_outputs.tool_calls:
+            if tool_call.function.name == "get_product_info":
+                try:
+                    arguments = json.loads(tool_call.function.arguments)
+                    logger.debug(f"Handling required action for product ID {arguments['id']}")
+                    product_info = get_product_info(
+                        arguments['id'],
+                        arguments['pre_shared_key'],
+                        arguments['product_info_webhook_url']
+                    )
+                    tool_outputs.append({
+                        "tool_call_id": tool_call.id,
+                        "output": json.dumps(product_info)
+                    })
+                except Exception as e:
+                    logger.error(f"Error in get_product_info: {str(e)}")
+                    tool_outputs.append({
+                        "tool_call_id": tool_call.id,
+                        "output": json.dumps({"error": str(e)})
+                    })
+            if tool_call.function.name == "get_user_info":
+                try:
+                    arguments = json.loads(tool_call.function.arguments)
+                    wp_username = arguments.get('wp_username', 'N/A')
+                    logger.debug(f"Extracted wp_username before get_user_info call: {wp_username}")
+
+                    # Verify if transformation happens
+                    if wp_username != 'a8d6e69f_admin':
+                        logger.error(f"wp_username mismatch. Expected 'a8d6e69f_admin', found: {wp_username}")
+
+                    user_info = get_user_info(
+                        wp_username,
+                        arguments['pre_shared_key'],
+                        arguments['user_info_webhook_url']
+                    )
+                    tool_outputs.append({
+                        "tool_call_id": tool_call.id,
+                        "output": json.dumps(user_info)
+                    })
+                except Exception as e:
+                    logger.error(f"Error in get_user_info: {str(e)}")
+                    tool_outputs.append({
+                        "tool_call_id": tool_call.id,
+                        "output": json.dumps({"error": str(e)})
+                    })
+
+        logger.debug(f"Submitting tool outputs: {tool_outputs}")
+        client.beta.threads.runs.submit_tool_outputs(thread_id=thread_id, run_id=run.id, tool_outputs=tool_outputs)
+        return True
+
+    return False
 
 def format_response(content):
     try:
