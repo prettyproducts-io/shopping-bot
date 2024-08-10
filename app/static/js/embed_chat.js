@@ -11,11 +11,25 @@
 
     // Function to get cookie value
     function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.startsWith(name)) {
+                return cookie.substring(name.length + 1);
+            }
+        }
+        return null;
     }
 
+    // Function to get the wordpress_logged_in_ cookie value
+    function getWordpressLoggedInUser() {
+        const cookieValue = getCookie('wordpress_logged_in_');
+        if (cookieValue) {
+            return cookieValue.split('|')[0];
+        }
+        return null;
+    }
+    
     // Function to get session storage value
     function getSessionStorage(key) {
         return sessionStorage.getItem(key);
@@ -32,20 +46,74 @@
         return data.csrf_token;
     }
 
+    // Function to get the cart items from Wordpress
+    async function getCartItems() {
+        try {
+            const response = await fetch('/wp-admin/admin-ajax.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'action=fetch_cart_items',
+            });
+            const data = await response.json();
+            const cartData = {
+                totalItems: 0,
+                totalPrice: 0,
+                items: []
+            };
+    
+            data.forEach(item => {
+                const price = parseFloat(item.price);
+                const quantity = parseInt(item.quantity);
+    
+                cartData.totalItems += quantity;
+                cartData.totalPrice += price * quantity;
+    
+                cartData.items.push({
+                    id: item.id,
+                    name: item.product_name,
+                    category: item.category,
+                    brand: item.brand,
+                    sku: item.sku,
+                    quantity: quantity,
+                    price: price
+                });
+            });
+    
+            return cartData;
+        } catch (error) {
+            console.error('Error fetching cart items:', error);
+            return {
+                totalItems: 0,
+                totalPrice: 0,
+                items: []
+            };
+        }
+    }
+
     // Function to send session info to chat bot
     async function sendSessionInfo() {
         const sessionInfo = {
-            ajs_anonymous_id: getCookie('ajs_anonymous_id'),
-            first_session: getCookie('first_session'),
-            _pmw_session_data_cart: getSessionStorage('_pmw_session_data_cart'),
-            klaviyoPagesVisitCount: getSessionStorage('klaviyoPagesVisitCount')
+            current_page_name: document.title,
+            current_page_path: window.location.pathname,
+            wp_username: getWordpressLoggedInUser(),
+            visits: parseInt(getSessionStorage('visits')) || 1,
+            start: parseInt(getSessionStorage('first_visit_time')),
+            last_visit: Date.now(),
+            url: window.location.href,
+            path: window.location.pathname,
+            referrer: document.referrer,
+            prev_visit: parseInt(getSessionStorage('previous_visit_time')),
+            time_since_last_visit: Date.now() - (parseInt(getSessionStorage('previous_visit_time')) || 0),
+            version: 1.0,
+            cart_contents: await getCartItems()
         };
-        console.log('Session Info:', sessionInfo);
+    
+        sessionStorage.setItem('previous_visit_time', String(Date.now()));
     
         try {
             const csrfToken = await getCSRFToken();
-            console.log('CSRF Token:', csrfToken);
-    
             const response = await fetch('https://epona.eqbay.co/update_session_info', {
                 method: 'POST',
                 headers: {
@@ -56,21 +124,14 @@
                 credentials: 'include'
             });
     
-            console.log('Response status:', response.status);
-            console.log('Response headers:', response.headers);
-    
             if (!response.ok) {
                 const text = await response.text();
-                console.log('Response text:', text);
                 throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
             }
     
-            const data = await response.json();
-            console.log('Response data:', data);
-            return data;
+            return await response.json();
         } catch (error) {
             console.error('Error updating session info:', error);
-            console.error('Error details:', error.message);
             return null;
         }
     }

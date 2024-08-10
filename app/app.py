@@ -325,39 +325,25 @@ try:
 
         try:
             origin = request.headers.get('Origin')
-            app.logger.debug(f"Origin: {origin}")
-            
+
             allowed_origins = ['https://www.eqbay.co', 'https://eqbay.co', 'https://epona.eqbay.co']
             if not origin or origin not in allowed_origins:
-                app.logger.error(f"Invalid or missing origin: Origin={origin}")
                 return jsonify({"status": "error", "message": "Invalid or missing origin"}), 400
 
-            # Parse the JSON data from the request body
             session_info = request.json
-            app.logger.debug(f"Received session info: {session_info}")
 
             if not session_info:
                 return jsonify({"status": "error", "message": "No session info provided"}), 400
 
-            # Store session info
+            # Store session information in the session
             session['client_session_info'] = session_info
-
-            # Identify user (adjust this based on your analytics setup)
-            if hasattr(app, 'analytics'):
-                app.analytics.identify(session.get('sid', 'unknown'), {
-                    'anonymous_id': session_info.get('ajs_anonymous_id'),
-                    'first_session': session_info.get('first_session'),
-                    'cart_data': session_info.get('_pmw_session_data_cart'),
-                    'pages_visit_count': session_info.get('klaviyoPagesVisitCount')
-                })
 
             response = jsonify({"status": "success", "message": "Session info updated"})
             response.headers.add('Access-Control-Allow-Origin', origin)
             response.headers.add('Access-Control-Allow-Credentials', 'true')
             return response
-        
+
         except Exception as e:
-            app.logger.error(f"Error in /update_session_info: {str(e)}")
             response = jsonify({"status": "error", "message": str(e)})
             response.headers["Access-Control-Allow-Origin"] = origin if origin else 'https://www.eqbay.co'
             response.headers["Access-Control-Allow-Credentials"] = "true"

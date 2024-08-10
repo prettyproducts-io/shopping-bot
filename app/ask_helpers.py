@@ -14,10 +14,10 @@ logger = logging.getLogger(__name__)
 class ChatForm(FlaskForm):
     question = TextAreaField('Question', validators=[DataRequired()])
 
-def get_product_info(product_id, pre_shared_key, webhook_url):
+def get_product_info(product_id, pre_shared_key, product_info_webhook_url):
     try:
         # Construct the URL with the correct scheme
-        url = f"{webhook_url}/{product_id}?key={pre_shared_key}"
+        url = f"{product_info_webhook_url}/{product_id}?key={pre_shared_key}"
         logger.debug(f"Sending request to URL: {url}")
 
         response = requests.post(url)
@@ -27,29 +27,40 @@ def get_product_info(product_id, pre_shared_key, webhook_url):
     except requests.RequestException as e:
         logger.error(f"Error fetching product info for ID {product_id}: {str(e)}")
         return {"error": str(e)}
+    
+def get_user_info(wp_username, pre_shared_key, user_info_webhook_url):
+    try:
+        # Construct the URL with the correct scheme
+        url = f"{user_info_webhook_url}/{wp_username}?key={pre_shared_key}"
+        logger.debug(f"Sending request to URL: {url}")
+
+        response = requests.post(url)
+        logger.debug(f"Received response from webhook: {response.status_code} - {response.content}")
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        logger.error(f"Error fetching user info for ID {wp_username}: {str(e)}")
+        return {"error": str(e)}
 
 def generate_responses(thread_id, run):
     session_id = session.get('sid', 'unknown')
+    session_info = session.get('client_session_info', {})
     logger.debug(f"Session ID in generate_responses: {session_id}")
+    logger.debug(f"Session Info in generate_responses: {session_info}")
 
     start_time = time.time()
-    timeout = 60  # Increased timeout to 60 seconds
-    max_retries = 30  # Maximum number of status checks
+    timeout = 60
+    max_retries = 30
 
-    logger.debug(f"Starting status check loop with timeout={timeout}s and max_retries={max_retries}")
     for attempt in range(max_retries):
         if time.time() - start_time > timeout:
-            logger.debug("Request timed out.")
             yield f"data: {json.dumps({'error': 'Request timed out'})}\n\n"
             break
 
         try:
             run_status = client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run.id)
-            logger.debug(f"Attempt {attempt}: Run status: {run_status.status}")
-            logger.debug(f"Full run status: {run_status}")
 
             if run_status.status == 'completed':
-                logger.debug(f"Run completed in attempt {attempt}")
                 messages = client.beta.threads.messages.list(thread_id=thread_id, limit=1)
                 for message in messages.data:
                     if message.role == "assistant":
@@ -58,7 +69,8 @@ def generate_responses(thread_id, run):
 
                         # Track bot response
                         analytics.track(session_id, 'Bot Response Sent', {
-                            'response': formatted_content
+                            'response': formatted_content,
+                            'session_info': session_info
                         })
 
                         yield f"data: {formatted_content}\n\n"
@@ -66,30 +78,23 @@ def generate_responses(thread_id, run):
                 break
 
             elif run_status.status in ['failed', 'cancelled', 'expired']:
-                logger.error(f"Run status is {run_status.status}. Ending loop.")
                 yield f"data: {json.dumps({'error': f'Run {run_status.status}'})}\n\n"
                 break
 
             elif run_status.status == 'requires_action':
-                logger.warning(f"Run requires action: {run_status.required_action}")
                 if handle_required_action(run_status, thread_id):
-                    logger.debug("Handled required action, retrying status check.")
-                    time.sleep(2)  # Wait before checking again
+                    time.sleep(2)
                     continue
                 else:
-                    logger.error("Unable to handle required action. Ending loop.")
                     yield f"data: {json.dumps({'error': 'Unable to handle required action'})}\n\n"
                     break
             else:
-                logger.debug(f"Run status not final. Sleeping before next attempt.")
-                time.sleep(2)  # Increased wait time between checks
+                time.sleep(2)
 
         except Exception as e:
-            logger.error(f"Error checking run status: {str(e)}")
             yield f"data: {json.dumps({'error': f'Error checking run status: {str(e)}'})}\n\n"
             break
     else:
-        logger.debug("Maximum retries reached.")
         yield f"data: {json.dumps({'error': 'Maximum retries reached'})}\n\n"
 
 def format_response(content):
@@ -129,7 +134,7 @@ def handle_required_action(run, thread_id):
                     product_info = get_product_info(
                         arguments['id'],
                         arguments['pre_shared_key'],
-                        arguments['webhook_url']
+                        arguments['product_info_webhook_url']
                     )
                     tool_outputs.append({
                         "tool_call_id": tool_call.id,
@@ -137,6 +142,25 @@ def handle_required_action(run, thread_id):
                     })
                 except Exception as e:
                     logger.error(f"Error in get_product_info: {str(e)}")
+                    tool_outputs.append({
+                        "tool_call_id": tool_call.id,
+                        "output": json.dumps({"error": str(e)})
+                    })
+            if tool_call.function.name == "get_user_info":
+                try:
+                    arguments = json.loads(tool_call.function.arguments)
+                    logger.debug(f"Handling required action for user ID {arguments['wp_username']}")
+                    user_info = get_user_info(
+                        arguments['wp_username'],
+                        arguments['pre_shared_key'],
+                        arguments['user_info_webhook_url']
+                    )
+                    tool_outputs.append({
+                        "tool_call_id": tool_call.id,
+                        "output": json.dumps(user_info)
+                    })
+                except Exception as e:
+                    logger.error(f"Error in get_user_info: {str(e)}")
                     tool_outputs.append({
                         "tool_call_id": tool_call.id,
                         "output": json.dumps({"error": str(e)})

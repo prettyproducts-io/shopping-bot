@@ -40,7 +40,8 @@
     "openai_model_name": "gpt-4o-mini",
     "model_temperature": 0.5,
     "segment_write_key": "NbzC1NEue3HLaFtv0rYCDBMgCRs8oKSC",
-    "webhook_url": "https://www.eqbay.co/wp-json/custom/v1/product-info",
+    "product_info_webhook_url": "https://www.eqbay.co/wp-json/custom/v1/product-info",
+    "user_info_webhook_url": "https://www.eqbay.co/wp-json/custom/v1/user-info",
     "pre_shared_key": "02c895ca37d24a3c24cf2536ee8843ba19b5eb95efbc892095553885c5996278",
     "assistant_id": "asst_KiTMROLt1yBc2Y5fLN1KcSvG"
 }
