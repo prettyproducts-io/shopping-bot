@@ -204,61 +204,6 @@ def generate_responses(thread_id, run):
     else:
         yield f"data: {json.dumps({'error': 'Maximum retries reached'})}\n\n"
 
-def handle_required_action(run, thread_id):
-    if run.required_action and run.required_action.type == "submit_tool_outputs":
-        tool_outputs = []
-        for tool_call in run.required_action.submit_tool_outputs.tool_calls:
-            if tool_call.function.name == "get_product_info":
-                try:
-                    arguments = json.loads(tool_call.function.arguments)
-                    logger.debug(f"Handling required action for product ID {arguments['id']}")
-                    product_info = get_product_info(
-                        arguments['id'],
-                        arguments['pre_shared_key'],
-                        arguments['product_info_webhook_url']
-                    )
-                    tool_outputs.append({
-                        "tool_call_id": tool_call.id,
-                        "output": json.dumps(product_info)
-                    })
-                except Exception as e:
-                    logger.error(f"Error in get_product_info: {str(e)}")
-                    tool_outputs.append({
-                        "tool_call_id": tool_call.id,
-                        "output": json.dumps({"error": str(e)})
-                    })
-            if tool_call.function.name == "get_user_info":
-                try:
-                    arguments = json.loads(tool_call.function.arguments)
-                    wp_username = arguments.get('wp_username', 'N/A')
-                    logger.debug(f"Extracted wp_username before get_user_info call: {wp_username}")
-
-                    # Verify if transformation happens
-                    if wp_username != 'a8d6e69f_admin':
-                        logger.error(f"wp_username mismatch. Expected 'a8d6e69f_admin', found: {wp_username}")
-
-                    user_info = get_user_info(
-                        wp_username,
-                        arguments['pre_shared_key'],
-                        arguments['user_info_webhook_url']
-                    )
-                    tool_outputs.append({
-                        "tool_call_id": tool_call.id,
-                        "output": json.dumps(user_info)
-                    })
-                except Exception as e:
-                    logger.error(f"Error in get_user_info: {str(e)}")
-                    tool_outputs.append({
-                        "tool_call_id": tool_call.id,
-                        "output": json.dumps({"error": str(e)})
-                    })
-
-        logger.debug(f"Submitting tool outputs: {tool_outputs}")
-        client.beta.threads.runs.submit_tool_outputs(thread_id=thread_id, run_id=run.id, tool_outputs=tool_outputs)
-        return True
-
-    return False
-
 def format_response(content):
     try:
         response_data = json.loads(content)
@@ -289,6 +234,7 @@ def handle_required_action(run, thread_id):
     if run.required_action and run.required_action.type == "submit_tool_outputs":
         tool_outputs = []
         pre_shared_key = config.get('pre_shared_key', '')  # Get the pre-shared key from config
+        
         for tool_call in run.required_action.submit_tool_outputs.tool_calls:
             if tool_call.function.name == "get_product_info":
                 try:
@@ -309,6 +255,7 @@ def handle_required_action(run, thread_id):
                         "tool_call_id": tool_call.id,
                         "output": json.dumps({"error": str(e)})
                     })
+
             if tool_call.function.name == "get_user_info":
                 try:
                     arguments = json.loads(tool_call.function.arguments)
@@ -327,7 +274,7 @@ def handle_required_action(run, thread_id):
                         pre_shared_key,  # Use the pre-shared key from config
                         arguments['user_info_webhook_url']
                     )
-                    
+
                     tool_outputs.append({
                         "tool_call_id": tool_call.id,
                         "output": json.dumps(user_info)
@@ -339,7 +286,17 @@ def handle_required_action(run, thread_id):
                         "output": json.dumps({"error": str(e)})
                     })
 
-        logger.debug(f"Submitting tool outputs: {tool_outputs}")
-        client.beta.threads.runs.submit_tool_outputs(thread_id=thread_id, run_id=run.id, tool_outputs=tool_outputs)
+        logger.debug(f"Prepared tool outputs: {tool_outputs}")
+
+        # Only submit if tool outputs is not empty
+        if tool_outputs:
+            logger.debug(f"Submitting tool outputs: {tool_outputs}")
+            try:
+                client.beta.threads.runs.submit_tool_outputs(thread_id=thread_id, run_id=run.id, tool_outputs=tool_outputs)
+            except OpenAIError as e:
+                logger.error(f"Error submitting tool outputs: {str(e)}")
+        else:
+            logger.debug("No tool outputs to submit.")
         return True
+
     return False
