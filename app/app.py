@@ -335,7 +335,15 @@ try:
             if not session_info:
                 return jsonify({"status": "error", "message": "No session info provided"}), 400
 
-            session['client_session_info'] = session_info
+            # Avoid overwriting the entire client_session_info
+            if 'client_session_info' in session:
+                current_info = session['client_session_info']
+                current_info.update(session_info)
+                session['client_session_info'] = current_info
+            else:
+                session['client_session_info'] = session_info
+
+            app.logger.debug(f'Updated session info: {session["client_session_info"]}')
 
             response = jsonify({"status": "success", "message": "Session info updated"})
             response.headers.add('Access-Control-Allow-Origin', origin)
