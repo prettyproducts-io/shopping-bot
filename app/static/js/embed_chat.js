@@ -25,14 +25,16 @@
     function getWordpressLoggedInUser() {
         const cookies = document.cookie.split(";").map(c => c.trim());
         console.log('All cookies:', cookies);  // Log all cookies for debugging
+    
         for (let cookie of cookies) {
-            if (cookie.startsWith("wp_logged_in_user_")) {
+            // Check for the wordpress_logged_in_ cookie name pattern
+            if (cookie.startsWith("wordpress_logged_in_")) {
                 const cookieValue = cookie.split("=")[1];
-                console.log('Detected wp_logged_in_user_ cookie value:', cookieValue);
+                console.log('Detected wordpress_logged_in_ cookie value:', cookieValue);
                 if (cookieValue) {
                     const decodedValue = decodeURIComponent(cookieValue);
                     console.log('Decoded cookie value:', decodedValue);
-                    return decodedValue.split('|')[0];
+                    return decodedValue.split('|')[0];  // Extract username
                 }
             }
         }
